@@ -7,7 +7,7 @@ Rencana kerja. Perubahan yang dirilis dicatat di `CHANGELOG.md`.
 - [x] Riset API Synology Spreadsheet, MCP, dan risiko keamanan
 - [x] `GLOSARIUM.md`
 - [x] Modul inti di `src/`: `penyangga`, `json`, `pengodean`, `konfigurasi`, `catat`, `http`, `klien_api`, `alat`
-- [ ] Perbaiki peringatan kompilasi di `konfigurasi.c`: validasi panjang alamat (host maks. 299 byte), hapus `salin_teks` bila tak terpakai
+- [x] Perbaiki peringatan kompilasi di `konfigurasi.c`: alamat terlalu panjang ditolak (tidak dipotong), `salin_teks` hanya dikompilasi di non-Windows
 - [ ] `main.c`: loop JSON-RPC stdio (`initialize`, `tools/list`, `tools/call`)
 - [ ] `CMakeLists.txt`, kompilasi tanpa peringatan (`-Wall -Wextra -Wpedantic`)
 - [ ] Tes dasar di `tes/` (json, pengodean, penyangga, konfigurasi, alat)
