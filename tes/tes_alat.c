@@ -219,8 +219,8 @@ static void periksa_hemat_token(void)
     /* pemotongan tidak membelah karakter UTF-8 (a + pasangan 2 byte; batas jatuh di tengah) */
     besar[0] = 'a';
     for (i = 1; i + 1 < BATAS_HASIL_BYTE + 1500; i += 2) {
-        besar[i] = (char)0xC3;
-        besar[i + 1] = (char)0xA9;
+        besar[i] = '\xC3';
+        besar[i + 1] = '\xA9';
     }
     besar[BATAS_HASIL_BYTE + 1499] = 'z';
     penyangga_siapkan(&hasil);
