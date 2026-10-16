@@ -11,7 +11,7 @@ Rencana kerja. Perubahan yang dirilis dicatat di `CHANGELOG.md`.
 - [x] `main.c`: loop JSON-RPC stdio (`initialize`, `ping`, `tools/list`, `tools/call`)
 - [x] `CMakeLists.txt`, kompilasi tanpa peringatan (`-Wall -Wextra -Wpedantic`)
 - [x] Commit modul `src/` yang belum tercatat bersama `CMakeLists.txt`
-- [ ] Tes dasar di `tes/` (json, pengodean, penyangga, konfigurasi, alat)
+- [x] Tes dasar di `tes/` (json, pengodean, penyangga, konfigurasi, alat)
 - [ ] `README.md` (tanpa istilah teknis), `CHANGELOG.md`, `CONTRIBUTING.md`; keterangan lengkap di `docs/`
 - [ ] Uji masuk dan cabut token ke NAS (hanya masuk dan cabut; kredensial dari pemilik, tidak disimpan)
 - [ ] Uji dengan klien MCP nyata (mis. Claude Desktop) dan satu panggilan alat baca ke NAS
