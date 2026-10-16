@@ -16,7 +16,9 @@
 #include "penyangga.h"
 
 #define NAMA_SERVER "mcp-synology-spreadsheet"
-#define VERSI_SERVER "0.1.0"
+#ifndef VERSI_SERVER
+#define VERSI_SERVER "0.0.0-pengembangan" /* build resmi: diisi CMakeLists.txt */
+#endif
 #define BATAS_PESAN_BYTE ((size_t)16 * 1024 * 1024)
 
 #define KODE_JSON_TIDAK_VALID (-32700)

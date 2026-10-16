@@ -1,0 +1,6 @@
+/bangun/
+*.o
+*.obj
+*.exe
+.env
+.syno-creds

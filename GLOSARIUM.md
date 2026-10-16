@@ -22,6 +22,8 @@ Kata kerja baku untuk fungsi: `buat`, `bebaskan`, `baca`, `tulis`, `ambil`, `car
 | Istilah | Padanan Inggris | Dipakai untuk |
 | --- | --- | --- |
 | alat | tool | alat MCP yang dipanggil model |
+| bangun | build | folder hasil build (`bangun/`, tidak di-commit) |
+| pustaka | library | kumpulan modul yang ditautkan (`pustaka_inti`) |
 | argumen | argument | masukan sebuah alat |
 | badan | body | isi permintaan atau respons HTTP |
 | batas_waktu | timeout | batas waktu jaringan |

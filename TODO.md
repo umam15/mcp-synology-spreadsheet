@@ -9,8 +9,8 @@ Rencana kerja. Perubahan yang dirilis dicatat di `CHANGELOG.md`.
 - [x] Modul inti di `src/`: `penyangga`, `json`, `pengodean`, `konfigurasi`, `catat`, `http`, `klien_api`, `alat`
 - [x] Perbaiki peringatan kompilasi di `konfigurasi.c`: alamat terlalu panjang ditolak (tidak dipotong), `salin_teks` hanya dikompilasi di non-Windows
 - [x] `main.c`: loop JSON-RPC stdio (`initialize`, `ping`, `tools/list`, `tools/call`)
-- [ ] `CMakeLists.txt`, kompilasi tanpa peringatan (`-Wall -Wextra -Wpedantic`)
-- [ ] Commit modul `src/` yang belum tercatat (`alat`, `catat`, `http_*`, `json`, `klien_api`, `pengodean`, `penyangga`) bersama `CMakeLists.txt`
+- [x] `CMakeLists.txt`, kompilasi tanpa peringatan (`-Wall -Wextra -Wpedantic`)
+- [x] Commit modul `src/` yang belum tercatat bersama `CMakeLists.txt`
 - [ ] Tes dasar di `tes/` (json, pengodean, penyangga, konfigurasi, alat)
 - [ ] `README.md` (tanpa istilah teknis), `CHANGELOG.md`, `CONTRIBUTING.md`; keterangan lengkap di `docs/`
 - [ ] Uji masuk dan cabut token ke NAS (hanya masuk dan cabut; kredensial dari pemilik, tidak disimpan)
@@ -21,5 +21,6 @@ Rencana kerja. Perubahan yang dirilis dicatat di `CHANGELOG.md`.
 
 ## Berikutnya
 
+- [ ] Klien HTTP untuk platform selain Windows (libcurl), rencana v0.3.0; sementara `http_tanpa_dukungan.c` melaporkan galat jelas
 - [ ] Dukungan transport selain stdio bila dibutuhkan
 - [ ] Uji akun dengan 2FA, masa berlaku token, batas laju (belum terkonfirmasi, lihat vault `Riset Fase 1`)
