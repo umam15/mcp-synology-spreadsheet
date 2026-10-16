@@ -17,6 +17,17 @@ Kode, komentar, pesan, dan dokumen berbahasa Indonesia. Istilah baru ditambahkan
 - Ringan dan tangguh; utamakan optimasi daripada fitur baru; offline first.
 - Setiap perubahan perilaku disertai tes di `tes/`; jalankan `ctest` sebelum PR.
 
+## Hemat token (syarat utama)
+
+Model membayar setiap karakter yang dikirim server ini, jadi keluaran harus sekecil mungkin tanpa mengurangi kebenaran.
+
+- Deskripsi alat dan skema masukan singkat; satu alat = satu tugas jelas. Daftar `tools/list` tidak boleh membengkak.
+- Keluaran alat hanya memuat bidang yang berguna bagi model; buang bidang kosong, bawaan, atau metadata API yang tak dipakai.
+- Hasil besar dibatasi (rentang atau jumlah baris) dan menyebut cara melanjutkan, bukan dikirim utuh.
+- Pesan galat satu kalimat, tanpa jejak panjang dan tanpa kredensial.
+- JSON ringkas tanpa spasi atau indentasi. Perubahan keluaran disertai tes yang memeriksa ukurannya.
+- Keselamatan tidak dikorbankan: peringatan konfirmasi untuk alat merusak tetap ada.
+
 ## Keamanan
 
 - Jangan memasukkan kredensial (akun, kata sandi, token) ke repo, log, atau pesan galat.
