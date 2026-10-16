@@ -19,7 +19,7 @@ Rencana kerja. Perubahan yang dirilis dicatat di `CHANGELOG.md`.
 - [x] Uji dengan klien MCP nyata (Claude) dan panggilan alat baca ke NAS (`ambil_spreadsheet`, `baca_nilai`)
 - [x] Verifikasi versi protokol MCP 2025-11-25 di sumber resmi; ditambahkan di `main.c`
 - [ ] CI hemat menit: tag `vX.Y.Z` = Release, `vX.Y.Z-rc.N` = pre-release, PR dan manual = artifact
-- [ ] Audit hemat token: ukur dan ringkas `tools/list` serta keluaran tiap alat (buang bidang tak berguna, batasi hasil besar), tambah tes ukuran; aturan di `CONTRIBUTING.md`
+- [x] Audit hemat token: ukuran `tools/list` 7025 → 6372 byte (batas tes 6400); keluaran `ambil_spreadsheet` dan `baca_nilai` diringkas; hasil dibatasi 24000 byte; tes ukuran ditambah
 - [ ] Rilis v0.1.0
 
 ## Berikutnya

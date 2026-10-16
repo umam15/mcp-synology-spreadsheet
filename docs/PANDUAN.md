@@ -57,6 +57,8 @@ Daftarkan exe langsung tanpa argumen, mis. pada `claude_desktop_config.json`:
 
 Alat diberi anotasi baca/merusak. `id_spreadsheet` selalu diteruskan sebagai argumen.
 
+Keluaran ringkas (hemat token): `ambil_spreadsheet` berisi `judul` dan `lembar` (`id_lembar`, `nama`, `baris`, `kolom`); `baca_nilai` berisi larik nilai saja. Hasil alat dipotong pada 24000 byte dengan catatan "terpotong"; baca rentang atau lembar yang lebih kecil.
+
 ## Protokol
 
 Versi MCP yang didukung: 2025-11-25, 2025-06-18, 2025-03-26, 2024-11-05. Notifikasi tidak dibalas; log hanya ke stderr tanpa kredensial; batas pesan 16 MiB.

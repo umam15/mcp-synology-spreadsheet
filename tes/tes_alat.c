@@ -1,4 +1,5 @@
 
+#include <stdlib.h>
 #include <string.h>
 
 #include "alat.h"
@@ -7,6 +8,8 @@
 #include "tes.h"
 
 #define JUMLAH_ALAT 14
+/* Hemat token: batas atas ukuran tools/list (byte); naikkan hanya dengan alasan kuat. */
+#define BATAS_DAFTAR_BYTE 6400
 
 /* Memanggil penangan alat dengan argumen JSON. Mengembalikan hasil penangan
    (1 berhasil, 0 galat), atau -1 bila alat tidak ada atau argumen bukan JSON. */
@@ -127,11 +130,117 @@ static void periksa_daftar(void)
     periksa_anotasi("ubah_massal", 0, 1);
 }
 
+/* Hemat token: ukuran daftar alat dan keluaran ringkas. */
+static void periksa_hemat_token(void)
+{
+    penyangga_t daftar;
+    penyangga_t hasil;
+    char *besar;
+    const char *isi;
+    const char *potong;
+    size_t i;
+
+    penyangga_siapkan(&daftar);
+    alat_tulis_daftar(&daftar);
+    PERIKSA(daftar.panjang <= BATAS_DAFTAR_BYTE);
+    penyangga_bebaskan(&daftar);
+
+    /* ambil_spreadsheet: hanya bidang berguna */
+    penyangga_siapkan(&hasil);
+    PERIKSA(alat_ringkas_spreadsheet(
+                "{\"id\":\"abc\",\"properties\":{\"title\":\"dev\",\"locale\":\"en_US\"},\"sheets\":["
+                "{\"properties\":{\"title\":\"Sheet1\",\"sheetId\":\"sh_1\",\"index\":0,"
+                "\"hidden\":false},\"rowCount\":4,\"colCount\":29,\"fixedColumnLeft\":0,"
+                "\"fixedRowTop\":0,\"mergeCells\":[]},"
+                "{\"properties\":{\"title\":\"Arsip\",\"sheetId\":\"sh_2\",\"index\":1,"
+                "\"hidden\":true},\"rowCount\":2,\"colCount\":3,\"mergeCells\":[]}]}",
+                strlen("{\"id\":\"abc\",\"properties\":{\"title\":\"dev\",\"locale\":\"en_US\"},"
+                       "\"sheets\":[{\"properties\":{\"title\":\"Sheet1\",\"sheetId\":\"sh_1\","
+                       "\"index\":0,\"hidden\":false},\"rowCount\":4,\"colCount\":29,"
+                       "\"fixedColumnLeft\":0,\"fixedRowTop\":0,\"mergeCells\":[]},"
+                       "{\"properties\":{\"title\":\"Arsip\",\"sheetId\":\"sh_2\",\"index\":1,"
+                       "\"hidden\":true},\"rowCount\":2,\"colCount\":3,\"mergeCells\":[]}]}"),
+                &hasil) == 1);
+    PERIKSA_TEKS(penyangga_isi(&hasil),
+                 "{\"judul\":\"dev\",\"lembar\":[{\"id_lembar\":\"sh_1\",\"nama\":\"Sheet1\","
+                 "\"baris\":4,\"kolom\":29},{\"id_lembar\":\"sh_2\",\"nama\":\"Arsip\","
+                 "\"baris\":2,\"kolom\":3,\"tersembunyi\":true}]}");
+    penyangga_bebaskan(&hasil);
+
+    /* bentuk tak dikenal: hasil tidak diubah */
+    penyangga_siapkan(&hasil);
+    PERIKSA(alat_ringkas_spreadsheet("{\"x\":1}", 7, &hasil) == 0);
+    PERIKSA(alat_ringkas_spreadsheet("bukan json", 10, &hasil) == 0);
+    PERIKSA(hasil.panjang == 0);
+    penyangga_bebaskan(&hasil);
+
+    /* baca_nilai: hanya larik nilai */
+    penyangga_siapkan(&hasil);
+    PERIKSA(alat_ringkas_nilai("{\"range\":\"A1:B1\",\"majorDimension\":\"ROWS\","
+                               "\"values\":[[\"a\",1]]}",
+                               strlen("{\"range\":\"A1:B1\",\"majorDimension\":\"ROWS\","
+                                      "\"values\":[[\"a\",1]]}"),
+                               &hasil) == 1);
+    PERIKSA_TEKS(penyangga_isi(&hasil), "[[\"a\",1]]");
+    penyangga_bebaskan(&hasil);
+
+    penyangga_siapkan(&hasil);
+    PERIKSA(alat_ringkas_nilai("{\"range\":\"A1\"}", 14, &hasil) == 1);
+    PERIKSA_TEKS(penyangga_isi(&hasil), "[]");
+    penyangga_bebaskan(&hasil);
+
+    penyangga_siapkan(&hasil);
+    PERIKSA(alat_ringkas_nilai("[1]", 3, &hasil) == 0);
+    PERIKSA(alat_ringkas_nilai("bukan json", 10, &hasil) == 0);
+    PERIKSA(hasil.panjang == 0);
+    penyangga_bebaskan(&hasil);
+
+    /* batas hasil: tepat di batas tidak dipotong */
+    besar = malloc(BATAS_HASIL_BYTE + 2000);
+    if (besar == NULL) {
+        tes_jumlah_periksa++;
+        tes_catat_gagal(__FILE__, __LINE__, "memori tes tidak cukup");
+        return;
+    }
+    memset(besar, 'x', BATAS_HASIL_BYTE);
+    penyangga_siapkan(&hasil);
+    alat_tambah_dibatasi(&hasil, besar, BATAS_HASIL_BYTE);
+    PERIKSA(hasil.panjang == BATAS_HASIL_BYTE);
+    penyangga_bebaskan(&hasil);
+
+    /* lebih besar: dipotong dengan catatan, dan ukuran terbatas */
+    memset(besar, 'x', BATAS_HASIL_BYTE + 1500);
+    penyangga_siapkan(&hasil);
+    alat_tambah_dibatasi(&hasil, besar, BATAS_HASIL_BYTE + 1500);
+    PERIKSA(hasil.panjang < BATAS_HASIL_BYTE + 200);
+    PERIKSA_MENGANDUNG(penyangga_isi(&hasil), "[terpotong:");
+    penyangga_bebaskan(&hasil);
+
+    /* pemotongan tidak membelah karakter UTF-8 (a + pasangan 2 byte; batas jatuh di tengah) */
+    besar[0] = 'a';
+    for (i = 1; i + 1 < BATAS_HASIL_BYTE + 1500; i += 2) {
+        besar[i] = (char)0xC3;
+        besar[i + 1] = (char)0xA9;
+    }
+    besar[BATAS_HASIL_BYTE + 1499] = 'z';
+    penyangga_siapkan(&hasil);
+    alat_tambah_dibatasi(&hasil, besar, BATAS_HASIL_BYTE + 1500);
+    isi = penyangga_isi(&hasil);
+    potong = strstr(isi, "\n[terpotong:");
+    PERIKSA(potong != NULL);
+    if (potong != NULL) {
+        PERIKSA((unsigned char)potong[-1] == 0xA9);
+    }
+    penyangga_bebaskan(&hasil);
+    free(besar);
+}
+
 void tes_periksa_alat(void)
 {
     penyangga_t keluar;
     char id_panjang[80];
 
+    periksa_hemat_token();
     periksa_daftar();
 
     /* tanpa kredensial: galat jelas, tanpa jaringan dan tanpa nilai rahasia */

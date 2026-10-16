@@ -24,4 +24,13 @@ const definisi_alat_t *alat_cari(const char *nama);
 /* Menulis larik JSON berisi seluruh alat (untuk tools/list). */
 void alat_tulis_daftar(penyangga_t *keluar);
 
+/* Hemat token: hasil alat dibatasi sebesar BATAS_HASIL_BYTE (dengan catatan bila terpotong). */
+#define BATAS_HASIL_BYTE 24000
+/* Menambah badan ke hasil; dipotong pada batas di tepi karakter UTF-8. */
+void alat_tambah_dibatasi(penyangga_t *hasil, const char *badan, size_t panjang);
+/* Meringkas respons API menjadi JSON padat. Mengembalikan 1 bila hasil ditulis; 0 bila badan
+   tak dikenali (hasil tidak diubah). */
+int alat_ringkas_spreadsheet(const char *badan, size_t panjang, penyangga_t *hasil);
+int alat_ringkas_nilai(const char *badan, size_t panjang, penyangga_t *hasil);
+
 #endif

@@ -15,7 +15,7 @@ Sumber tunggal istilah proyek. Semua nama berkas, fungsi, variabel, tipe, konsta
 | Pesan log, galat, dan alat | Bahasa Indonesia, tanpa kredensial | `Galat API (HTTP 401)` |
 | Komentar dan dokumen | Bahasa Indonesia | — |
 
-Kata kerja baku untuk fungsi: `buat`, `bebaskan`, `baca`, `tulis`, `ambil`, `cari`, `urai`, `kirim`, `tambah`, `hapus`, `periksa`, `muat`, `tangani`. Jangan memakai sinonim lain (mis. `get`, `fetch`, `remove`).
+Kata kerja baku untuk fungsi: `buat`, `bebaskan`, `baca`, `tulis`, `ambil`, `cari`, `urai`, `kirim`, `tambah`, `hapus`, `periksa`, `muat`, `tangani`, `ringkas`, `batasi`. Jangan memakai sinonim lain (mis. `get`, `fetch`, `remove`).
 
 ## Istilah umum
 
@@ -29,6 +29,8 @@ Kata kerja baku untuk fungsi: `buat`, `bebaskan`, `baca`, `tulis`, `ambil`, `car
 | batas_waktu | timeout | batas waktu jaringan |
 | galat | error | kegagalan; pesan galat |
 | hasil | result | keluaran fungsi atau alat |
+| ringkas | summarize | meringkas respons API menjadi JSON padat (hemat token) |
+| batas_hasil | result limit | `BATAS_HASIL_BYTE`, ukuran maksimum hasil alat |
 | jalur | path | bagian alamat setelah host |
 | kata_sandi | password | kredensial |
 | kode_status | status code | angka status HTTP |
