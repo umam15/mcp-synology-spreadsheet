@@ -19,7 +19,7 @@ Rencana kerja. Perubahan yang dirilis dicatat di `CHANGELOG.md`.
 - [x] Uji dengan klien MCP nyata (Claude) dan panggilan alat baca ke NAS (`ambil_spreadsheet`, `baca_nilai`)
 - [x] Verifikasi versi protokol MCP 2025-11-25 di sumber resmi; ditambahkan di `main.c`
 - [x] CI hemat menit ditulis (`.github/workflows/ci.yml`): tag `vX.Y.Z` = Release, `vX.Y.Z-rc.N` = pre-release, PR dan manual = artifact
-- [ ] Jalankan CI sekali lewat `workflow_dispatch` di GitHub (butuh push) dan perbaiki bila gagal di runner
+- [x] CI dijalankan lewat `workflow_dispatch` di GitHub: lulus (±41 detik, artifact 112 KB)
 - [x] Audit hemat token: ukuran `tools/list` 7025 → 6372 byte (batas tes 6400); keluaran `ambil_spreadsheet` dan `baca_nilai` diringkas; hasil dibatasi 24000 byte; tes ukuran ditambah
 - [ ] Rilis v0.1.0
 
