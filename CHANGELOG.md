@@ -11,5 +11,6 @@ Mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [Seman
 - Klien HTTP Windows (WinHTTP); platform lain melaporkan galat jelas.
 - Build CMake dan tes otomatis (CTest).
 - Dukungan versi protokol MCP 2025-11-25.
+- CI GitHub Actions hemat menit: build dan tes Windows pada PR dan manual (artifact); Release otomatis pada tag `vX.Y.Z`, pre-release pada `vX.Y.Z-rc.N`.
 - Hemat token: deskripsi alat dipersingkat; `ambil_spreadsheet` dan `baca_nilai` mengirim keluaran ringkas; hasil alat dibatasi 24000 byte; tes ukuran daftar alat dan keluaran.
 - Dokumen: README, GLOSARIUM, TODO, CONTRIBUTING, panduan teknis.

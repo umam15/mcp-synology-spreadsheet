@@ -18,7 +18,8 @@ Rencana kerja. Perubahan yang dirilis dicatat di `CHANGELOG.md`.
 - [ ] Uji pencabutan token ke NAS (`api_cabut` saat konfigurasi berubah atau server berhenti; kredensial dari pemilik, tidak disimpan)
 - [x] Uji dengan klien MCP nyata (Claude) dan panggilan alat baca ke NAS (`ambil_spreadsheet`, `baca_nilai`)
 - [x] Verifikasi versi protokol MCP 2025-11-25 di sumber resmi; ditambahkan di `main.c`
-- [ ] CI hemat menit: tag `vX.Y.Z` = Release, `vX.Y.Z-rc.N` = pre-release, PR dan manual = artifact
+- [x] CI hemat menit ditulis (`.github/workflows/ci.yml`): tag `vX.Y.Z` = Release, `vX.Y.Z-rc.N` = pre-release, PR dan manual = artifact
+- [ ] Jalankan CI sekali lewat `workflow_dispatch` di GitHub (butuh push) dan perbaiki bila gagal di runner
 - [x] Audit hemat token: ukuran `tools/list` 7025 → 6372 byte (batas tes 6400); keluaran `ambil_spreadsheet` dan `baca_nilai` diringkas; hasil dibatasi 24000 byte; tes ukuran ditambah
 - [ ] Rilis v0.1.0
 

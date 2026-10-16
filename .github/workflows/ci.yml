@@ -1,0 +1,83 @@
+name: CI
+
+# Hemat menit: tanpa push ke cabang (PR sudah menguji), dokumen tidak memicu,
+# proses lama dibatalkan, satu job build (Windows) + satu job rilis ringan (Linux, hanya tag).
+on:
+  pull_request:
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "LICENSE"
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+permissions:
+  contents: read
+
+jobs:
+  bangun:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Versi tag harus sama dengan CMakeLists.txt
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $tag = $env:GITHUB_REF_NAME.Substring(1) -replace '-rc\.\d+$', ''
+          $cmake = (Select-String -Path CMakeLists.txt -Pattern 'VERSION\s+(\d+\.\d+\.\d+)').Matches[0].Groups[1].Value
+          if ($tag -ne $cmake) { throw "Tag $env:GITHUB_REF_NAME tidak sama dengan versi CMake $cmake" }
+
+      - name: Konfigurasi
+        run: cmake -S . -B bangun -A x64 -DPERINGATAN_SEBAGAI_GALAT=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+
+      - name: Bangun
+        run: cmake --build bangun --config Release
+
+      - name: Tes
+        run: ctest --test-dir bangun -C Release --output-on-failure
+
+      - name: Kemas
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory dist | Out-Null
+          Copy-Item bangun\Release\mcp-synology-spreadsheet.exe dist\
+          $h = (Get-FileHash dist\mcp-synology-spreadsheet.exe -Algorithm SHA256).Hash.ToLower()
+          "$h  mcp-synology-spreadsheet.exe" | Set-Content -Encoding ascii dist\SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mcp-synology-spreadsheet-windows-x64
+          path: dist/
+          retention-days: 7
+          if-no-files-found: error
+
+  rilis:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: bangun
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: mcp-synology-spreadsheet-windows-x64
+          path: dist
+
+      - name: Buat Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          bendera=""
+          case "$GITHUB_REF_NAME" in *-rc.*) bendera="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes $bendera
