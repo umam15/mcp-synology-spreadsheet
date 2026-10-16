@@ -10,4 +10,5 @@ Mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [Seman
 - Konfigurasi dari `config.json` di `.config` dengan muat ulang otomatis; variabel lingkungan sebagai cadangan.
 - Klien HTTP Windows (WinHTTP); platform lain melaporkan galat jelas.
 - Build CMake dan tes otomatis (CTest).
+- Dukungan versi protokol MCP 2025-11-25.
 - Dokumen: README, GLOSARIUM, TODO, CONTRIBUTING, panduan teknis.

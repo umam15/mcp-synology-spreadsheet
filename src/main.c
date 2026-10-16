@@ -27,8 +27,8 @@
 #define KODE_PARAMETER_TIDAK_VALID (-32602)
 
 /* Urutan: yang terbaru lebih dulu. */
-static const char *const VERSI_PROTOKOL_DIDUKUNG[] = {"2025-06-18", "2025-03-26", "2024-11-05"};
-#define JUMLAH_VERSI_PROTOKOL 3
+static const char *const VERSI_PROTOKOL_DIDUKUNG[] = {"2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"};
+#define JUMLAH_VERSI_PROTOKOL 4
 
 #define RESPONS_MEMORI_HABIS                                                              \
     "{\"jsonrpc\":\"2.0\",\"id\":null,\"error\":{\"code\":-32603,\"message\":"            \

@@ -17,7 +17,7 @@ Rencana kerja. Perubahan yang dirilis dicatat di `CHANGELOG.md`.
 - [x] Uji masuk ke NAS (akun uji, lewat `periksa_sambungan`)
 - [ ] Uji pencabutan token ke NAS (`api_cabut` saat konfigurasi berubah atau server berhenti; kredensial dari pemilik, tidak disimpan)
 - [x] Uji dengan klien MCP nyata (Claude) dan panggilan alat baca ke NAS (`ambil_spreadsheet`, `baca_nilai`)
-- [ ] Verifikasi versi protokol MCP 2025-11-25 di sumber resmi; tambahkan di `main.c` bila sesuai
+- [x] Verifikasi versi protokol MCP 2025-11-25 di sumber resmi; ditambahkan di `main.c`
 - [ ] CI hemat menit: tag `vX.Y.Z` = Release, `vX.Y.Z-rc.N` = pre-release, PR dan manual = artifact
 - [ ] Rilis v0.1.0
 
