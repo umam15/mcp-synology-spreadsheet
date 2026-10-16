@@ -6,6 +6,8 @@
 
 extern int tes_jumlah_periksa;
 extern int tes_jumlah_gagal;
+/* Profil pengguna palsu (USERPROFILE/HOME) yang dipasang tes_utama; tidak dibuat di disk. */
+extern char tes_dir_profil[512];
 
 void tes_catat_gagal(const char *berkas, int baris, const char *ekspresi);
 void tes_catat_beda_teks(const char *berkas, int baris, const char *sebenarnya,

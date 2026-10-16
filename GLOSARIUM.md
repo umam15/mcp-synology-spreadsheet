@@ -32,7 +32,8 @@ Kata kerja baku untuk fungsi: `buat`, `bebaskan`, `baca`, `tulis`, `ambil`, `car
 | jalur | path | bagian alamat setelah host |
 | kata_sandi | password | kredensial |
 | kode_status | status code | angka status HTTP |
-| konfigurasi | configuration | pengaturan dari variabel lingkungan |
+| konfigurasi | configuration | pengaturan dari berkas `config.json` atau variabel lingkungan |
+| tanda | fingerprint | hash isi berkas konfigurasi; berubah bila isi berubah, memicu muat ulang |
 | konfirmasi | confirmation | persetujuan sebelum aksi merusak |
 | kredensial | credentials | empat nilai akses (lihat bawah) |
 | larik | array | larik JSON |
@@ -85,7 +86,7 @@ Kata kerja baku untuk fungsi: `buat`, `bebaskan`, `baca`, `tulis`, `ambil`, `car
 
 ## Kredensial dan konfigurasi
 
-Hanya empat nilai, dari variabel lingkungan. Nama variabel sama dengan `.syno-creds` di proyek Synology Skills (nama warisan, tidak diubah agar tak ada istilah ganda):
+Hanya empat nilai. Sumber utama: berkas `config.json` di `%USERPROFILE%\.config\mcp-synology-spreadsheet\` (non-Windows: `$HOME/.config/mcp-synology-spreadsheet/`) dengan kunci sama dengan kolom "Istilah kode" di bawah; perubahan berkas berlaku pada panggilan alat berikutnya tanpa memulai ulang. Bila berkas tidak ada, dipakai variabel lingkungan. Bila berkas ada, hanya berkas yang dipakai. Nama variabel sama dengan `.syno-creds` di proyek Synology Skills (nama warisan, tidak diubah agar tak ada istilah ganda):
 
 | Variabel | Istilah kode | Arti |
 | --- | --- | --- |

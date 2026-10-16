@@ -11,20 +11,50 @@ static konfigurasi_t konfigurasi_global;
 static int status_konfigurasi = 0; /* 0 belum dimuat, 1 berhasil, -1 gagal */
 static char pesan_konfigurasi[200];
 static char *token_global = NULL;
+static unsigned long long tanda_konfigurasi = 0; /* tanda isi berkas saat konfigurasi dimuat */
+
+/* Mencabut token (upaya terbaik), membuang token dan kredensial dari memori. */
+static void lepas_sesi(void)
+{
+    if (token_global != NULL && status_konfigurasi == 1) {
+        respons_http_t respons;
+        char galat[128];
+
+        penyangga_siapkan(&respons.badan);
+        http_kirim(&konfigurasi_global.server_api, "POST", "/spreadsheets/authorize/token/revoke",
+                   token_global, NULL, 0, &respons, galat, sizeof galat);
+        penyangga_bebaskan(&respons.badan);
+    }
+    free(token_global);
+    token_global = NULL;
+    if (status_konfigurasi == 1) {
+        konfigurasi_bebaskan(&konfigurasi_global);
+    }
+    status_konfigurasi = 0;
+}
 
 static int pastikan_konfigurasi(char *galat, size_t ukuran_galat)
 {
+    /* Berkas konfigurasi berubah: buang sesi lama dan muat ulang, tanpa memulai ulang server. */
+    if (status_konfigurasi != 0 && konfigurasi_tanda() != tanda_konfigurasi) {
+        lepas_sesi();
+    }
     if (status_konfigurasi == 0) {
-        status_konfigurasi =
-            konfigurasi_muat(&konfigurasi_global, pesan_konfigurasi, sizeof pesan_konfigurasi)
-                ? 1
-                : -1;
+        status_konfigurasi = konfigurasi_muat_semua(&konfigurasi_global, &tanda_konfigurasi,
+                                                    pesan_konfigurasi, sizeof pesan_konfigurasi)
+                                 ? 1
+                                 : -1;
     }
     if (status_konfigurasi == 1) {
         return 1;
     }
     snprintf(galat, ukuran_galat, "Konfigurasi belum lengkap: %s", pesan_konfigurasi);
     return 0;
+}
+
+int api_pastikan_konfigurasi(char *galat, size_t ukuran_galat)
+{
+    return pastikan_konfigurasi(galat, ukuran_galat);
 }
 
 const konfigurasi_t *api_konfigurasi(void)
@@ -134,20 +164,6 @@ int api_panggil(const char *metode, const char *jalur, const char *badan, size_t
 
 void api_cabut(void)
 {
-    if (token_global != NULL && status_konfigurasi == 1) {
-        respons_http_t respons;
-        char galat[128];
-
-        penyangga_siapkan(&respons.badan);
-        http_kirim(&konfigurasi_global.server_api, "POST", "/spreadsheets/authorize/token/revoke",
-                   token_global, NULL, 0, &respons, galat, sizeof galat);
-        penyangga_bebaskan(&respons.badan);
-    }
-    free(token_global);
-    token_global = NULL;
-    if (status_konfigurasi == 1) {
-        konfigurasi_bebaskan(&konfigurasi_global);
-    }
-    status_konfigurasi = 0;
+    lepas_sesi();
     http_tutup();
 }

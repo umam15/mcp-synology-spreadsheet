@@ -1,8 +1,212 @@
 
-#include <string.h>
+#ifndef _WIN32
+#define _POSIX_C_SOURCE 200809L
+#endif
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#ifdef _WIN32
+#include <direct.h>
+#else
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
+
+#include "klien_api.h"
 #include "konfigurasi.h"
 #include "tes.h"
+
+#define JSON_LENGKAP(pengguna, sandi)                                                      \
+    "{\"server_api\":\"http://api.berkas:3000\",\"server_nas\":\"nas.berkas:5001\","       \
+    "\"nama_pengguna\":\"" pengguna "\",\"kata_sandi\":\"" sandi "\"}"
+
+static char dir_konfigurasi[640];
+static char berkas_konfigurasi[700];
+
+static void buat_dir(const char *jalur)
+{
+#ifdef _WIN32
+    _mkdir(jalur);
+#else
+    mkdir(jalur, 0700);
+#endif
+}
+
+static void hapus_dir(const char *jalur)
+{
+#ifdef _WIN32
+    _rmdir(jalur);
+#else
+    rmdir(jalur);
+#endif
+}
+
+static void siapkan_berkas_uji(void)
+{
+    char tengah[560];
+
+    snprintf(tengah, sizeof tengah, "%s/.config", tes_dir_profil);
+    snprintf(dir_konfigurasi, sizeof dir_konfigurasi, "%s/mcp-synology-spreadsheet", tengah);
+    snprintf(berkas_konfigurasi, sizeof berkas_konfigurasi, "%s/config.json", dir_konfigurasi);
+    buat_dir(tes_dir_profil);
+    buat_dir(tengah);
+    buat_dir(dir_konfigurasi);
+}
+
+static void bersihkan_berkas_uji(void)
+{
+    char tengah[560];
+
+    remove(berkas_konfigurasi);
+    snprintf(tengah, sizeof tengah, "%s/.config", tes_dir_profil);
+    hapus_dir(dir_konfigurasi);
+    hapus_dir(tengah);
+    hapus_dir(tes_dir_profil);
+}
+
+static void tulis_berkas_uji(const char *isi, size_t panjang)
+{
+    FILE *f = fopen(berkas_konfigurasi, "wb");
+
+    PERIKSA(f != NULL);
+    if (f != NULL) {
+        fwrite(isi, 1, panjang, f);
+        fclose(f);
+    }
+}
+
+static void tulis_teks_uji(const char *isi)
+{
+    tulis_berkas_uji(isi, strlen(isi));
+}
+
+static void periksa_gagal_muat(const char *isi, const char *bagian_galat, const char *rahasia)
+{
+    konfigurasi_t k;
+    char galat[256];
+    unsigned long long tanda = 0;
+
+    tulis_teks_uji(isi);
+    PERIKSA(!konfigurasi_muat_semua(&k, &tanda, galat, sizeof galat));
+    PERIKSA(tanda != 0);
+    PERIKSA_MENGANDUNG(galat, bagian_galat);
+    if (rahasia != NULL) {
+        PERIKSA_TIDAK_MENGANDUNG(galat, rahasia);
+    }
+    PERIKSA(k.nama_pengguna == NULL && k.kata_sandi == NULL);
+}
+
+static void periksa_berkas_konfigurasi(void)
+{
+    konfigurasi_t k;
+    char galat[256];
+    unsigned long long tanda = 0;
+    unsigned long long tanda_lain;
+    char *besar;
+
+    siapkan_berkas_uji();
+    tes_atur_lingkungan(LINGKUNGAN_SERVER_API, "http://env.local:3000");
+    tes_atur_lingkungan(LINGKUNGAN_SERVER_NAS, "env.local:5001");
+    tes_atur_lingkungan(LINGKUNGAN_NAMA_PENGGUNA, "pengguna_env");
+    tes_atur_lingkungan(LINGKUNGAN_KATA_SANDI, "sandi-env-1");
+
+    /* tanpa berkas: dipakai variabel lingkungan */
+    PERIKSA(konfigurasi_tanda() == 0);
+    PERIKSA(konfigurasi_muat_semua(&k, &tanda, galat, sizeof galat));
+    PERIKSA(tanda == 0);
+    PERIKSA_TEKS(k.nama_pengguna, "pengguna_env");
+    konfigurasi_bebaskan(&k);
+
+    /* ada berkas: berkas menang atas lingkungan */
+    tulis_teks_uji(JSON_LENGKAP("pengguna_berkas", "sandi-berkas-2"));
+    PERIKSA(konfigurasi_tanda() != 0);
+    PERIKSA(konfigurasi_muat_semua(&k, &tanda, galat, sizeof galat));
+    PERIKSA(tanda == konfigurasi_tanda());
+    PERIKSA(k.server_api.https == 0 && k.server_api.port == 3000);
+    PERIKSA(k.server_nas.https == 1 && k.server_nas.port == 5001);
+    PERIKSA_TEKS(k.nama_pengguna, "pengguna_berkas");
+    PERIKSA_TEKS(k.kata_sandi, "sandi-berkas-2");
+    konfigurasi_bebaskan(&k);
+
+    /* isi berubah: tanda berubah */
+    tulis_teks_uji(JSON_LENGKAP("pengguna_berkas", "sandi-berkas-9"));
+    tanda_lain = konfigurasi_tanda();
+    PERIKSA(tanda_lain != 0 && tanda_lain != tanda);
+
+    /* BOM UTF-8 dari editor diterima */
+    tulis_teks_uji("\xEF\xBB\xBF" JSON_LENGKAP("pengguna_bom", "sandi-bom-3"));
+    PERIKSA(konfigurasi_muat_semua(&k, NULL, galat, sizeof galat));
+    PERIKSA_TEKS(k.nama_pengguna, "pengguna_bom");
+    konfigurasi_bebaskan(&k);
+
+    /* berkas bermasalah: galat jelas, tanpa nilai rahasia */
+    periksa_gagal_muat("{\"server_api\":\"http://api.berkas:3000\",\"kata_sandi\":\"sandi-rahasia-3\"}",
+                       "belum diisi", "sandi-rahasia-3");
+    periksa_gagal_muat("{\"server_api\":\"\",\"server_nas\":\"\",\"nama_pengguna\":\"\","
+                       "\"kata_sandi\":\"\"}",
+                       "belum diisi", NULL);
+    periksa_gagal_muat("{\"server_api\":\"http://api.berkas:3000\",\"server_nas\":\"n\","
+                       "\"nama_pengguna\":\"u\",\"kata_sandi\":123}",
+                       "harus berupa teks", NULL);
+    periksa_gagal_muat("{\"server_api\":", "bukan JSON valid", NULL);
+    periksa_gagal_muat("[]", "objek JSON", NULL);
+    periksa_gagal_muat("{\"server_api\":\"http://api.berkas:3000\",\"server_nas\":\"nas/jalur\","
+                       "\"nama_pengguna\":\"u\",\"kata_sandi\":\"sandi-rahasia-4\"}",
+                       "server_nas tidak valid", "sandi-rahasia-4");
+
+    /* berkas terlalu besar ditolak */
+    besar = malloc(20 * 1024);
+    PERIKSA(besar != NULL);
+    if (besar != NULL) {
+        memset(besar, ' ', 20 * 1024);
+        tulis_berkas_uji(besar, 20 * 1024);
+        PERIKSA(!konfigurasi_muat_semua(&k, &tanda, galat, sizeof galat));
+        PERIKSA_MENGANDUNG(galat, "terlalu besar");
+        free(besar);
+    }
+
+    /* berkas dihapus: kembali ke lingkungan */
+    remove(berkas_konfigurasi);
+    PERIKSA(konfigurasi_tanda() == 0);
+    PERIKSA(konfigurasi_muat_semua(&k, &tanda, galat, sizeof galat));
+    PERIKSA_TEKS(k.nama_pengguna, "pengguna_env");
+    konfigurasi_bebaskan(&k);
+
+    /* klien: perubahan berkas berlaku pada panggilan berikutnya, tanpa memulai ulang */
+    tulis_teks_uji(JSON_LENGKAP("pengguna_a", "sandi-a"));
+    PERIKSA(api_pastikan_konfigurasi(galat, sizeof galat));
+    PERIKSA(api_konfigurasi() != NULL);
+    if (api_konfigurasi() != NULL) {
+        PERIKSA_TEKS(api_konfigurasi()->nama_pengguna, "pengguna_a");
+    }
+    tulis_teks_uji(JSON_LENGKAP("pengguna_b", "sandi-b"));
+    PERIKSA(api_pastikan_konfigurasi(galat, sizeof galat));
+    if (api_konfigurasi() != NULL) {
+        PERIKSA_TEKS(api_konfigurasi()->nama_pengguna, "pengguna_b");
+    }
+    tulis_teks_uji("{rusak");
+    PERIKSA(!api_pastikan_konfigurasi(galat, sizeof galat));
+    PERIKSA_MENGANDUNG(galat, "Konfigurasi belum lengkap");
+    PERIKSA(api_konfigurasi() == NULL);
+    tulis_teks_uji(JSON_LENGKAP("pengguna_c", "sandi-c"));
+    PERIKSA(api_pastikan_konfigurasi(galat, sizeof galat));
+    if (api_konfigurasi() != NULL) {
+        PERIKSA_TEKS(api_konfigurasi()->nama_pengguna, "pengguna_c");
+    }
+    remove(berkas_konfigurasi);
+    PERIKSA(api_pastikan_konfigurasi(galat, sizeof galat));
+    if (api_konfigurasi() != NULL) {
+        PERIKSA_TEKS(api_konfigurasi()->nama_pengguna, "pengguna_env");
+    }
+    api_cabut();
+
+    tes_atur_lingkungan(LINGKUNGAN_SERVER_API, NULL);
+    tes_atur_lingkungan(LINGKUNGAN_SERVER_NAS, NULL);
+    tes_atur_lingkungan(LINGKUNGAN_NAMA_PENGGUNA, NULL);
+    tes_atur_lingkungan(LINGKUNGAN_KATA_SANDI, NULL);
+    bersihkan_berkas_uji();
+}
 
 static void periksa_alamat(const char *teks, int https_bawaan, int https, int port,
                            const char *host, const char *host_dan_port)
@@ -116,4 +320,6 @@ void tes_periksa_konfigurasi(void)
     PERIKSA(k.nama_pengguna == NULL && k.kata_sandi == NULL);
 
     atur_semua(NULL, NULL, NULL, NULL);
+
+    periksa_berkas_konfigurasi();
 }

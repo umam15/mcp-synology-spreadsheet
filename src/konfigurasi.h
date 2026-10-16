@@ -32,4 +32,21 @@ int alamat_urai(const char *teks, int https_bawaan, alamat_t *alamat, char *gala
 int konfigurasi_muat(konfigurasi_t *konfigurasi, char *galat, size_t ukuran_galat);
 void konfigurasi_bebaskan(konfigurasi_t *konfigurasi);
 
+/* Berkas konfigurasi JSON: %USERPROFILE%\.config\mcp-synology-spreadsheet\config.json
+   (non-Windows: $HOME/.config/mcp-synology-spreadsheet/config.json). Bila berkas ada,
+   hanya berkas yang dipakai; bila tidak ada, dipakai variabel lingkungan. */
+#define KUNCI_SERVER_API "server_api"
+#define KUNCI_SERVER_NAS "server_nas"
+#define KUNCI_NAMA_PENGGUNA "nama_pengguna"
+#define KUNCI_KATA_SANDI "kata_sandi"
+
+/* Seperti konfigurasi_muat, tetapi memilih berkas atau lingkungan. *tanda (boleh NULL)
+   diisi tanda isi berkas, sama dengan konfigurasi_tanda() saat dimuat. */
+int konfigurasi_muat_semua(konfigurasi_t *konfigurasi, unsigned long long *tanda, char *galat,
+                           size_t ukuran_galat);
+
+/* Tanda isi berkas konfigurasi saat ini: 0 bila berkas tidak ada; selain itu bilangan
+   yang berubah bila isi berubah. Murah; dipakai untuk mendeteksi perubahan. */
+unsigned long long konfigurasi_tanda(void);
+
 #endif

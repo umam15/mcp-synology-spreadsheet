@@ -19,6 +19,11 @@ int api_panggil(const char *metode, const char *jalur, const char *badan, size_t
 /* Konfigurasi yang sudah dimuat, atau NULL bila belum/tidak valid. */
 const konfigurasi_t *api_konfigurasi(void);
 
+/* Memuat konfigurasi bila belum, atau memuat ulang (dan mencabut token lama) bila berkas
+   konfigurasi berubah. Dipanggil otomatis oleh api_masuk dan api_panggil; mengembalikan 1
+   bila konfigurasi valid. */
+int api_pastikan_konfigurasi(char *galat, size_t ukuran_galat);
+
 /* Mencabut token (upaya terbaik) dan membersihkan kredensial dari memori. */
 void api_cabut(void);
 

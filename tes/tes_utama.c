@@ -10,6 +10,7 @@
 
 int tes_jumlah_periksa = 0;
 int tes_jumlah_gagal = 0;
+char tes_dir_profil[512];
 
 void tes_catat_gagal(const char *berkas, int baris, const char *ekspresi)
 {
@@ -47,6 +48,22 @@ void tes_atur_lingkungan(const char *nama, const char *nilai)
 
 int main(void)
 {
+    const char *induk = getenv("TEMP");
+
+    if (induk == NULL || induk[0] == '\0') {
+        induk = getenv("TMPDIR");
+    }
+    if (induk == NULL || induk[0] == '\0') {
+        induk = "/tmp";
+    }
+
+    /* Profil pengguna palsu: tes tidak pernah membaca berkas konfigurasi pengguna sungguhan. */
+    snprintf(tes_dir_profil, sizeof tes_dir_profil, "%s/mcp_tes_profil", induk);
+#ifdef _WIN32
+    tes_atur_lingkungan("USERPROFILE", tes_dir_profil);
+#else
+    tes_atur_lingkungan("HOME", tes_dir_profil);
+#endif
     tes_atur_lingkungan("SYNO_SHEET_API_SERVER", NULL);
     tes_atur_lingkungan("SYNO_SERVER", NULL);
     tes_atur_lingkungan("SYNO_USER", NULL);
