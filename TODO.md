@@ -21,6 +21,7 @@ Rencana kerja. Perubahan yang dirilis dicatat di `CHANGELOG.md`.
 - [x] CI hemat menit ditulis (`.github/workflows/ci.yml`): tag `vX.Y.Z` = Release, `vX.Y.Z-rc.N` = pre-release, PR dan manual = artifact
 - [x] CI dijalankan lewat `workflow_dispatch` di GitHub: lulus (±41 detik, artifact 112 KB)
 - [x] Audit hemat token: ukuran `tools/list` 7025 → 6372 byte (batas tes 6400); keluaran `ambil_spreadsheet` dan `baca_nilai` diringkas; hasil dibatasi 24000 byte; tes ukuran ditambah
+- [x] Pre-release `v0.1.0-rc.1` lewat tag: CI dan job `rilis` lulus; aset `.exe` + `SHA256SUMS.txt` terpasang, checksum cocok, exe berjalan (masuk, baca, cabut token)
 - [ ] Rilis v0.1.0
 
 ## Berikutnya
