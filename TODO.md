@@ -15,7 +15,7 @@ Rencana kerja. Perubahan yang dirilis dicatat di `CHANGELOG.md`.
 - [x] Kredensial dari `config.json` di `.config` dengan muat ulang otomatis saat berkas berubah (tanpa memulai ulang klien MCP); variabel lingkungan sebagai cadangan
 - [x] `README.md` (tanpa istilah teknis), `CHANGELOG.md`, `CONTRIBUTING.md`; keterangan lengkap di `docs/`
 - [x] Uji masuk ke NAS (akun uji, lewat `periksa_sambungan`)
-- [ ] Uji pencabutan token ke NAS (`api_cabut` saat konfigurasi berubah atau server berhenti; kredensial dari pemilik, tidak disimpan)
+- [x] Uji pencabutan token ke NAS: saat server berhenti, token dicabut (HTTP 200) setelah perbaikan; uji pencabutan saat `config.json` berubah belum
 - [x] Uji dengan klien MCP nyata (Claude) dan panggilan alat baca ke NAS (`ambil_spreadsheet`, `baca_nilai`)
 - [x] Verifikasi versi protokol MCP 2025-11-25 di sumber resmi; ditambahkan di `main.c`
 - [x] CI hemat menit ditulis (`.github/workflows/ci.yml`): tag `vX.Y.Z` = Release, `vX.Y.Z-rc.N` = pre-release, PR dan manual = artifact

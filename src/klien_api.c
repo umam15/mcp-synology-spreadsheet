@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "catat.h"
 #include "json.h"
 #include "penyangga.h"
 
@@ -21,8 +22,15 @@ static void lepas_sesi(void)
         char galat[128];
 
         penyangga_siapkan(&respons.badan);
-        http_kirim(&konfigurasi_global.server_api, "POST", "/spreadsheets/authorize/token/revoke",
-                   token_global, NULL, 0, &respons, galat, sizeof galat);
+        if (!http_kirim(&konfigurasi_global.server_api, "POST", "/spreadsheets/authorize/token/revoke",
+                        token_global, NULL, 0, &respons, galat, sizeof galat)) {
+            catat_info("Token gagal dicabut: %s", galat);
+        } else if (respons.kode_status >= 200 && respons.kode_status < 300) {
+            catat_info("Token dicabut (HTTP %d)", respons.kode_status);
+        } else {
+            catat_info("Token gagal dicabut (HTTP %d): %.200s", respons.kode_status,
+                       penyangga_isi(&respons.badan));
+        }
         penyangga_bebaskan(&respons.badan);
     }
     free(token_global);

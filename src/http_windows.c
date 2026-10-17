@@ -119,7 +119,12 @@ int http_kirim(const alamat_t *alamat, const char *metode, const char *jalur, co
                            BATAS_WAKTU_KIRIM_MS, BATAS_WAKTU_TERIMA_MS);
     }
 
-    penyangga_tambah_teks(&tajuk, "Content-Type: application/json\r\nAccept: */*\r\n");
+    /* Content-Type hanya bila ada badan: server menolak (HTTP 500) POST cabut token tanpa badan
+       yang berjenis JSON. */
+    if (panjang_badan > 0) {
+        penyangga_tambah_teks(&tajuk, "Content-Type: application/json\r\n");
+    }
+    penyangga_tambah_teks(&tajuk, "Accept: */*\r\n");
     if (token != NULL) {
         if (!token_valid(token)) {
             isi_galat(galat, ukuran_galat, "Token sesi tidak valid", 0);
