@@ -23,7 +23,8 @@ Rencana kerja. Perubahan yang dirilis dicatat di `CHANGELOG.md`.
 - [x] Audit hemat token: ukuran `tools/list` 7025 → 6372 byte (batas tes 6400); keluaran `ambil_spreadsheet` dan `baca_nilai` diringkas; hasil dibatasi 24000 byte; tes ukuran ditambah
 - [x] Pre-release `v0.1.0-rc.1` lewat tag: CI dan job `rilis` lulus; aset `.exe` + `SHA256SUMS.txt` terpasang, checksum cocok, exe berjalan (masuk, baca, cabut token)
 - [x] Uji alat tulis, struktur, dan hapus pada spreadsheet uji baru (lewat Claude Desktop, exe rc.1): semua berhasil; alat merusak menolak tanpa `konfirmasi`
-- [ ] Audit hemat token tahap 2: ringkas keluaran `tulis_nilai` (memantulkan semua nilai), `baca_gaya` (±2000 karakter untuk 12 sel), `tambah_baris`, `tambah_lembar`, `ganti_nama_lembar`; pesan galat spreadsheet terhapus (HTTP 500 tanpa penjelasan)
+- [x] Audit hemat token tahap 2: keluaran `tulis_nilai`, `tambah_baris`, `tambah_lembar`, `ganti_nama_lembar`, `baca_gaya` diringkas (`baca_gaya` ±3200 → ±560 karakter), alat gaya/hapus/ubah massal membalas `Berhasil`; tes isi dan penolakan ditambah
+- [ ] Pesan galat jelas untuk spreadsheet terhapus (kini HTTP 500 "Unexpected error" dari API)
 - [ ] Uji masuk ulang otomatis saat token ditolak di tengah sesi
 - [ ] Rilis v0.1.0
 

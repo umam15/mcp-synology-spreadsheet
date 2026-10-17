@@ -57,7 +57,18 @@ Daftarkan exe langsung tanpa argumen, mis. pada `claude_desktop_config.json`:
 
 Alat diberi anotasi baca/merusak. `id_spreadsheet` selalu diteruskan sebagai argumen.
 
-Keluaran ringkas (hemat token): `ambil_spreadsheet` berisi `judul` dan `lembar` (`id_lembar`, `nama`, `baris`, `kolom`); `baca_nilai` berisi larik nilai saja. Hasil alat dipotong pada 24000 byte dengan catatan "terpotong"; baca rentang atau lembar yang lebih kecil.
+Keluaran ringkas (hemat token):
+
+| Alat | Keluaran |
+| --- | --- |
+| `ambil_spreadsheet` | `{"judul","lembar":[{"id_lembar","nama","baris","kolom"}]}` |
+| `baca_nilai` | larik nilai saja |
+| `baca_gaya` | `{"rentang","baris":[[sel]]}`; sel `{"v":nilai,"h":hasil rumus,"f":gaya dimasukkan}` atau `null` bila kosong (gaya efektif bawaan dibuang) |
+| `tulis_nilai`, `tambah_baris` | `{"rentang","baris","kolom"}` (rentang yang ditulis; nilai tidak dipantulkan) |
+| `tambah_lembar`, `ganti_nama_lembar` | `{"id_lembar","nama"}` |
+| `tulis_gaya`, `ubah_massal`, `hapus_lembar`, `hapus_spreadsheet` | `Berhasil` |
+
+Hasil alat dipotong pada 24000 byte dengan catatan "terpotong"; baca rentang atau lembar yang lebih kecil.
 
 ## Protokol
 

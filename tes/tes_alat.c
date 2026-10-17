@@ -235,11 +235,94 @@ static void periksa_hemat_token(void)
     free(besar);
 }
 
+typedef int (*fungsi_ringkas_t)(const char *, size_t, penyangga_t *);
+
+static void periksa_ringkas(fungsi_ringkas_t fn, const char *masukan, const char *harapan)
+{
+    penyangga_t hasil;
+
+    penyangga_siapkan(&hasil);
+    PERIKSA(fn(masukan, strlen(masukan), &hasil) == 1);
+    PERIKSA_TEKS(penyangga_isi(&hasil), harapan);
+    PERIKSA(hasil.panjang * 2 < strlen(masukan) || strlen(masukan) < 120);
+    penyangga_bebaskan(&hasil);
+}
+
+static void periksa_ringkas_ditolak(fungsi_ringkas_t fn)
+{
+    static const char *const bentuk[] = {"bukan json", "{\"x\":1}", "[1]"};
+    size_t i;
+
+    for (i = 0; i < sizeof bentuk / sizeof bentuk[0]; i++) {
+        penyangga_t hasil;
+
+        penyangga_siapkan(&hasil);
+        PERIKSA(fn(bentuk[i], strlen(bentuk[i]), &hasil) == 0);
+        PERIKSA(hasil.panjang == 0);
+        penyangga_bebaskan(&hasil);
+    }
+}
+
+/* Hemat token tahap 2: keluaran ringkas alat tulis, lembar, dan gaya. */
+static void periksa_ringkas_tahap2(void)
+{
+    penyangga_t hasil;
+
+    periksa_ringkas(alat_ringkas_tulis,
+                    "{\"range\":\"A1:C3\",\"majorDimension\":\"ROWS\",\"values\":[[\"nama\",\"qty\","
+                    "\"total\"],[\"Baut\",10,\"=B2*1500\"],[\"Oli\",3,\"=B3*45000\"]]}",
+                    "{\"rentang\":\"A1:C3\",\"baris\":3,\"kolom\":3}");
+    periksa_ringkas(alat_ringkas_tambah_baris,
+                    "{\"spreadsheetId\":\"x\",\"tableRange\":\"Sheet1!A1:C3\",\"updates\":{"
+                    "\"updateRange\":\"Sheet1!A4:C4\",\"updateRows\":1,\"updateColumns\":3}}",
+                    "{\"rentang\":\"Sheet1!A4:C4\",\"baris\":1,\"kolom\":3}");
+    periksa_ringkas(alat_ringkas_tambah_lembar,
+                    "{\"addSheet\":{\"properties\":{\"sheetId\":\"sh_2\",\"title\":\"Cadangan\","
+                    "\"index\":1}}}",
+                    "{\"id_lembar\":\"sh_2\",\"nama\":\"Cadangan\"}");
+    periksa_ringkas(alat_ringkas_ganti_nama,
+                    "{\"spreadsheetId\":\"x\",\"sheetId\":\"sh_2\",\"sheetName\":\"Arsip\"}",
+                    "{\"id_lembar\":\"sh_2\",\"nama\":\"Arsip\"}");
+    periksa_ringkas(alat_ringkas_berhasil, "{\"spreadsheetId\":\"x\"}", "Berhasil");
+    periksa_ringkas(
+        alat_ringkas_gaya,
+        "{\"range\":\"A1:B2\",\"rows\":[{\"values\":[{\"userEnteredValue\":\"nama\","
+        "\"effectiveValue\":\"nama\",\"formattedValue\":\"nama\",\"effectiveFormat\":{"
+        "\"numberFormat\":{\"type\":\"DEFAULT\",\"pattern\":\"General\"},\"verticalAlignment\":"
+        "\"bottom\",\"textFormat\":{\"name\":\"Arial\",\"size\":10,\"bold\":true,\"italic\":false,"
+        "\"color\":\"000000\"},\"bg\":\"fffffe\"},\"userEnteredFormat\":{\"textFormat\":{"
+        "\"bold\":true}}},{\"userEnteredValue\":\"=B2*2\",\"effectiveValue\":6,"
+        "\"formattedValue\":\"6\",\"effectiveFormat\":{},\"userEnteredFormat\":{}}]},"
+        "{\"values\":[{}]}]}",
+        "{\"rentang\":\"A1:B2\",\"baris\":[[{\"v\":\"nama\",\"f\":{\"textFormat\":{\"bold\":true}}},"
+        "{\"v\":\"=B2*2\",\"h\":6}],[null]]}");
+
+    /* bentuk tak dikenal ditolak tanpa mengubah hasil */
+    periksa_ringkas_ditolak(alat_ringkas_tulis);
+    periksa_ringkas_ditolak(alat_ringkas_tambah_baris);
+    periksa_ringkas_ditolak(alat_ringkas_tambah_lembar);
+    periksa_ringkas_ditolak(alat_ringkas_ganti_nama);
+    periksa_ringkas_ditolak(alat_ringkas_gaya);
+
+    /* ringkasan tidak memuat bidang bawaan yang tidak berguna */
+    penyangga_siapkan(&hasil);
+    PERIKSA(alat_ringkas_gaya("{\"range\":\"A1\",\"rows\":[{\"values\":[{\"userEnteredValue\":1,"
+                              "\"effectiveValue\":1,\"effectiveFormat\":{\"textFormat\":{"
+                              "\"name\":\"Arial\"}}}]}]}",
+                              strlen("{\"range\":\"A1\",\"rows\":[{\"values\":[{\"userEnteredValue\":1,"
+                                     "\"effectiveValue\":1,\"effectiveFormat\":{\"textFormat\":{"
+                                     "\"name\":\"Arial\"}}}]}]}"),
+                              &hasil) == 1);
+    PERIKSA(strstr(penyangga_isi(&hasil), "Arial") == NULL);
+    penyangga_bebaskan(&hasil);
+}
+
 void tes_periksa_alat(void)
 {
     penyangga_t keluar;
     char id_panjang[80];
 
+    periksa_ringkas_tahap2();
     periksa_hemat_token();
     periksa_daftar();
 

@@ -274,6 +274,296 @@ selesai:
     return ok;
 }
 
+/* ---------- ringkasan tahap 2 ---------- */
+
+static long hitung_anak(const dokumen_json_t *dok, const simpul_json_t *induk)
+{
+    long n = 0;
+    int i;
+
+    for (i = induk->anak_pertama; i >= 0; i = dok->simpul[i].saudara_berikut) {
+        n++;
+    }
+    return n;
+}
+
+static void tambah_mentah(penyangga_t *keluar, const dokumen_json_t *dok, const simpul_json_t *s)
+{
+    const char *awal = NULL;
+    size_t panjang = 0;
+
+    json_mentah(dok, s, &awal, &panjang);
+    penyangga_tambah(keluar, awal, panjang);
+}
+
+static int sama_mentah(const dokumen_json_t *dok, const simpul_json_t *a, const simpul_json_t *b)
+{
+    const char *awal_a = NULL;
+    const char *awal_b = NULL;
+    size_t panjang_a = 0;
+    size_t panjang_b = 0;
+
+    json_mentah(dok, a, &awal_a, &panjang_a);
+    json_mentah(dok, b, &awal_b, &panjang_b);
+    return panjang_a == panjang_b && memcmp(awal_a, awal_b, panjang_a) == 0;
+}
+
+/* Menyalin keluar ke hasil bila lengkap; mengembalikan 1 bila berhasil. */
+static int serahkan(penyangga_t *keluar, penyangga_t *hasil)
+{
+    int ok = 0;
+
+    if (!keluar->gagal) {
+        penyangga_tambah(hasil, keluar->data, keluar->panjang);
+        ok = 1;
+    }
+    penyangga_bebaskan(keluar);
+    return ok;
+}
+
+int alat_ringkas_berhasil(const char *badan, size_t panjang, penyangga_t *hasil)
+{
+    (void)badan;
+    (void)panjang;
+    penyangga_tambah_teks(hasil, "Berhasil");
+    return 1;
+}
+
+/* tulis_nilai: {"rentang","baris","kolom"} dari {"range","values"}. */
+int alat_ringkas_tulis(const char *badan, size_t panjang, penyangga_t *hasil)
+{
+    dokumen_json_t dok;
+    const simpul_json_t *rentang;
+    const simpul_json_t *nilai;
+    penyangga_t keluar;
+    long baris = 0;
+    long kolom = 0;
+    int i;
+    int ok = 0;
+
+    if (!json_urai(&dok, badan, panjang)) {
+        return 0;
+    }
+    penyangga_siapkan(&keluar);
+    rentang = json_cari(&dok, json_akar(&dok), "range");
+    nilai = json_cari(&dok, json_akar(&dok), "values");
+    if (json_akar(&dok)->jenis != JSON_OBJEK || rentang == NULL || nilai == NULL ||
+        nilai->jenis != JSON_LARIK) {
+        penyangga_bebaskan(&keluar);
+        json_bebaskan(&dok);
+        return 0;
+    }
+    for (i = nilai->anak_pertama; i >= 0; i = dok.simpul[i].saudara_berikut) {
+        long n = dok.simpul[i].jenis == JSON_LARIK ? hitung_anak(&dok, &dok.simpul[i]) : 0;
+
+        baris++;
+        if (n > kolom) {
+            kolom = n;
+        }
+    }
+    penyangga_tambah_teks(&keluar, "{\"rentang\":");
+    tambah_teks_salinan(&keluar, json_teks_salin(&dok, rentang));
+    penyangga_tambah_format(&keluar, ",\"baris\":%ld,\"kolom\":%ld}", baris, kolom);
+    ok = serahkan(&keluar, hasil);
+    json_bebaskan(&dok);
+    return ok;
+}
+
+/* tambah_baris: {"rentang","baris","kolom"} dari {"updates":{updateRange,updateRows,...}}. */
+int alat_ringkas_tambah_baris(const char *badan, size_t panjang, penyangga_t *hasil)
+{
+    dokumen_json_t dok;
+    const simpul_json_t *perubahan;
+    const simpul_json_t *rentang = NULL;
+    const simpul_json_t *n;
+    penyangga_t keluar;
+    long baris = 0;
+    long kolom = 0;
+    int ok = 0;
+
+    if (!json_urai(&dok, badan, panjang)) {
+        return 0;
+    }
+    penyangga_siapkan(&keluar);
+    perubahan = json_cari(&dok, json_akar(&dok), "updates");
+    if (json_akar(&dok)->jenis == JSON_OBJEK && perubahan != NULL &&
+        perubahan->jenis == JSON_OBJEK) {
+        rentang = json_cari(&dok, perubahan, "updateRange");
+    }
+    if (rentang == NULL) {
+        penyangga_bebaskan(&keluar);
+        json_bebaskan(&dok);
+        return 0;
+    }
+    n = json_cari(&dok, perubahan, "updateRows");
+    if (n != NULL) {
+        json_bulat(&dok, n, &baris);
+    }
+    n = json_cari(&dok, perubahan, "updateColumns");
+    if (n != NULL) {
+        json_bulat(&dok, n, &kolom);
+    }
+    penyangga_tambah_teks(&keluar, "{\"rentang\":");
+    tambah_teks_salinan(&keluar, json_teks_salin(&dok, rentang));
+    penyangga_tambah_format(&keluar, ",\"baris\":%ld,\"kolom\":%ld}", baris, kolom);
+    ok = serahkan(&keluar, hasil);
+    json_bebaskan(&dok);
+    return ok;
+}
+
+static int tulis_id_nama(const dokumen_json_t *dok, const simpul_json_t *id, const simpul_json_t *nama,
+                         penyangga_t *hasil)
+{
+    penyangga_t keluar;
+
+    if (id == NULL || nama == NULL) {
+        return 0;
+    }
+    penyangga_siapkan(&keluar);
+    penyangga_tambah_teks(&keluar, "{\"id_lembar\":");
+    tambah_teks_salinan(&keluar, json_teks_salin(dok, id));
+    penyangga_tambah_teks(&keluar, ",\"nama\":");
+    tambah_teks_salinan(&keluar, json_teks_salin(dok, nama));
+    penyangga_tambah_teks(&keluar, "}");
+    return serahkan(&keluar, hasil);
+}
+
+/* tambah_lembar: {"id_lembar","nama"} dari {"addSheet":{"properties":{sheetId,title}}}. */
+int alat_ringkas_tambah_lembar(const char *badan, size_t panjang, penyangga_t *hasil)
+{
+    dokumen_json_t dok;
+    const simpul_json_t *sifat;
+    int ok = 0;
+
+    if (!json_urai(&dok, badan, panjang)) {
+        return 0;
+    }
+    if (json_akar(&dok)->jenis == JSON_OBJEK) {
+        const simpul_json_t *tambah = json_cari(&dok, json_akar(&dok), "addSheet");
+
+        sifat = tambah != NULL && tambah->jenis == JSON_OBJEK ? json_cari(&dok, tambah, "properties")
+                                                              : NULL;
+        if (sifat != NULL && sifat->jenis == JSON_OBJEK) {
+            ok = tulis_id_nama(&dok, json_cari(&dok, sifat, "sheetId"),
+                               json_cari(&dok, sifat, "title"), hasil);
+        }
+    }
+    json_bebaskan(&dok);
+    return ok;
+}
+
+/* ganti_nama_lembar: {"id_lembar","nama"} dari {"sheetId","sheetName"}. */
+int alat_ringkas_ganti_nama(const char *badan, size_t panjang, penyangga_t *hasil)
+{
+    dokumen_json_t dok;
+    int ok = 0;
+
+    if (!json_urai(&dok, badan, panjang)) {
+        return 0;
+    }
+    if (json_akar(&dok)->jenis == JSON_OBJEK) {
+        ok = tulis_id_nama(&dok, json_cari(&dok, json_akar(&dok), "sheetId"),
+                           json_cari(&dok, json_akar(&dok), "sheetName"), hasil);
+    }
+    json_bebaskan(&dok);
+    return ok;
+}
+
+/* Satu sel gaya: {"v":nilai dimasukkan,"h":hasil rumus,"f":gaya dimasukkan}; null bila kosong. */
+static void tulis_sel_gaya(penyangga_t *keluar, const dokumen_json_t *dok, const simpul_json_t *sel)
+{
+    const simpul_json_t *masuk = NULL;
+    const simpul_json_t *efektif = NULL;
+    const simpul_json_t *gaya = NULL;
+    int ada = 0;
+
+    if (sel->jenis == JSON_OBJEK) {
+        masuk = json_cari(dok, sel, "userEnteredValue");
+        efektif = json_cari(dok, sel, "effectiveValue");
+        gaya = json_cari(dok, sel, "userEnteredFormat");
+    }
+    if (gaya != NULL && !(gaya->jenis == JSON_OBJEK && gaya->anak_pertama >= 0)) {
+        gaya = NULL;
+    }
+    if (efektif != NULL && masuk != NULL && sama_mentah(dok, masuk, efektif)) {
+        efektif = NULL;
+    }
+    if (masuk == NULL && efektif == NULL && gaya == NULL) {
+        penyangga_tambah_teks(keluar, "null");
+        return;
+    }
+    penyangga_tambah_teks(keluar, "{");
+    if (masuk != NULL) {
+        penyangga_tambah_teks(keluar, "\"v\":");
+        tambah_mentah(keluar, dok, masuk);
+        ada = 1;
+    }
+    if (efektif != NULL) {
+        penyangga_tambah_teks(keluar, ada ? ",\"h\":" : "\"h\":");
+        tambah_mentah(keluar, dok, efektif);
+        ada = 1;
+    }
+    if (gaya != NULL) {
+        penyangga_tambah_teks(keluar, ada ? ",\"f\":" : "\"f\":");
+        tambah_mentah(keluar, dok, gaya);
+    }
+    penyangga_tambah_teks(keluar, "}");
+}
+
+/* baca_gaya: {"rentang","baris":[[sel,...],...]} tanpa gaya efektif bawaan. */
+int alat_ringkas_gaya(const char *badan, size_t panjang, penyangga_t *hasil)
+{
+    dokumen_json_t dok;
+    const simpul_json_t *rentang;
+    const simpul_json_t *baris;
+    penyangga_t keluar;
+    int i;
+    int ok = 0;
+
+    if (!json_urai(&dok, badan, panjang)) {
+        return 0;
+    }
+    penyangga_siapkan(&keluar);
+    rentang = json_cari(&dok, json_akar(&dok), "range");
+    baris = json_cari(&dok, json_akar(&dok), "rows");
+    if (json_akar(&dok)->jenis != JSON_OBJEK || rentang == NULL || baris == NULL ||
+        baris->jenis != JSON_LARIK) {
+        penyangga_bebaskan(&keluar);
+        json_bebaskan(&dok);
+        return 0;
+    }
+    penyangga_tambah_teks(&keluar, "{\"rentang\":");
+    tambah_teks_salinan(&keluar, json_teks_salin(&dok, rentang));
+    penyangga_tambah_teks(&keluar, ",\"baris\":[");
+    for (i = baris->anak_pertama; i >= 0; i = dok.simpul[i].saudara_berikut) {
+        const simpul_json_t *nilai =
+            dok.simpul[i].jenis == JSON_OBJEK ? json_cari(&dok, &dok.simpul[i], "values") : NULL;
+        int j;
+
+        if (i != baris->anak_pertama) {
+            penyangga_tambah_teks(&keluar, ",");
+        }
+        penyangga_tambah_teks(&keluar, "[");
+        if (nilai != NULL && nilai->jenis == JSON_LARIK) {
+            for (j = nilai->anak_pertama; j >= 0; j = dok.simpul[j].saudara_berikut) {
+                if (j != nilai->anak_pertama) {
+                    penyangga_tambah_teks(&keluar, ",");
+                }
+                tulis_sel_gaya(&keluar, &dok, &dok.simpul[j]);
+            }
+        }
+        penyangga_tambah_teks(&keluar, "]");
+    }
+    penyangga_tambah_teks(&keluar, "]}");
+    if (!keluar.gagal) {
+        alat_tambah_dibatasi(hasil, keluar.data, keluar.panjang);
+        ok = 1;
+    }
+    penyangga_bebaskan(&keluar);
+    json_bebaskan(&dok);
+    return ok;
+}
+
 static int jalankan_dengan(const char *metode, const penyangga_t *jalur, const penyangga_t *badan,
                            ringkas_t ringkas, penyangga_t *hasil)
 {
@@ -400,7 +690,7 @@ static int alat_hapus_spreadsheet(const dokumen_json_t *dok, const simpul_json_t
     }
     penyangga_tambah_teks(&jalur, "/spreadsheets/delete");
     penyangga_tambah_format(&badan, "{\"spreadsheetId\":\"%s\"}", id);
-    ok = jalankan("POST", &jalur, &badan, hasil);
+    ok = jalankan_dengan("POST", &jalur, &badan, alat_ringkas_berhasil, hasil);
 selesai:
     free(id);
     penyangga_bebaskan(&jalur);
@@ -441,12 +731,12 @@ static int alat_baca_nilai(const dokumen_json_t *dok, const simpul_json_t *argum
 static int alat_baca_gaya(const dokumen_json_t *dok, const simpul_json_t *argumen,
                           penyangga_t *hasil)
 {
-    return baca_rentang(dok, argumen, "/styles/", NULL, hasil);
+    return baca_rentang(dok, argumen, "/styles/", alat_ringkas_gaya, hasil);
 }
 
 /* PUT nilai pada sebuah rentang; akhiran "" (tulis) atau "/append" (tambah baris). */
 static int tulis_rentang(const dokumen_json_t *dok, const simpul_json_t *argumen,
-                         const char *akhiran, penyangga_t *hasil)
+                         const char *akhiran, ringkas_t ringkas, penyangga_t *hasil)
 {
     char *id = NULL;
     char *rentang = NULL;
@@ -469,7 +759,7 @@ static int tulis_rentang(const dokumen_json_t *dok, const simpul_json_t *argumen
     penyangga_tambah_teks(&badan, "{\"values\":");
     penyangga_tambah(&badan, larik, panjang_larik);
     penyangga_tambah_teks(&badan, "}");
-    ok = jalankan("PUT", &jalur, &badan, hasil);
+    ok = jalankan_dengan("PUT", &jalur, &badan, ringkas, hasil);
 selesai:
     free(id);
     free(rentang);
@@ -481,13 +771,13 @@ selesai:
 static int alat_tulis_nilai(const dokumen_json_t *dok, const simpul_json_t *argumen,
                             penyangga_t *hasil)
 {
-    return tulis_rentang(dok, argumen, "", hasil);
+    return tulis_rentang(dok, argumen, "", alat_ringkas_tulis, hasil);
 }
 
 static int alat_tambah_baris(const dokumen_json_t *dok, const simpul_json_t *argumen,
                              penyangga_t *hasil)
 {
-    return tulis_rentang(dok, argumen, "/append", hasil);
+    return tulis_rentang(dok, argumen, "/append", alat_ringkas_tambah_baris, hasil);
 }
 
 static int alat_tulis_gaya(const dokumen_json_t *dok, const simpul_json_t *argumen,
@@ -519,7 +809,7 @@ static int alat_tulis_gaya(const dokumen_json_t *dok, const simpul_json_t *argum
                             kolom_awal);
     penyangga_tambah(&badan, data_gaya, panjang_data);
     penyangga_tambah_teks(&badan, "}");
-    ok = jalankan("PUT", &jalur, &badan, hasil);
+    ok = jalankan_dengan("PUT", &jalur, &badan, alat_ringkas_berhasil, hasil);
 selesai:
     free(id);
     free(nama_lembar);
@@ -547,7 +837,7 @@ static int alat_tambah_lembar(const dokumen_json_t *dok, const simpul_json_t *ar
     penyangga_tambah_teks(&badan, "{\"sheetName\":");
     penyangga_tambah_teks_json(&badan, nama_lembar, strlen(nama_lembar));
     penyangga_tambah_teks(&badan, "}");
-    ok = jalankan("POST", &jalur, &badan, hasil);
+    ok = jalankan_dengan("POST", &jalur, &badan, alat_ringkas_tambah_lembar, hasil);
 selesai:
     free(id);
     free(nama_lembar);
@@ -577,7 +867,7 @@ static int alat_ganti_nama_lembar(const dokumen_json_t *dok, const simpul_json_t
     penyangga_tambah_format(&badan, "{\"sheetId\":\"%s\",\"sheetName\":", id_lembar);
     penyangga_tambah_teks_json(&badan, nama_lembar, strlen(nama_lembar));
     penyangga_tambah_teks(&badan, "}");
-    ok = jalankan("POST", &jalur, &badan, hasil);
+    ok = jalankan_dengan("POST", &jalur, &badan, alat_ringkas_ganti_nama, hasil);
 selesai:
     free(id);
     free(id_lembar);
@@ -605,7 +895,7 @@ static int alat_hapus_lembar(const dokumen_json_t *dok, const simpul_json_t *arg
     }
     jalur_spreadsheet(&jalur, id, "/sheet/delete");
     penyangga_tambah_format(&badan, "{\"sheetId\":\"%s\"}", id_lembar);
-    ok = jalankan("POST", &jalur, &badan, hasil);
+    ok = jalankan_dengan("POST", &jalur, &badan, alat_ringkas_berhasil, hasil);
 selesai:
     free(id);
     free(id_lembar);
@@ -661,7 +951,7 @@ static int alat_ubah_massal(const dokumen_json_t *dok, const simpul_json_t *argu
     penyangga_tambah_teks(&badan, "{\"requests\":");
     penyangga_tambah(&badan, larik, panjang_larik);
     penyangga_tambah_teks(&badan, "}");
-    ok = jalankan("POST", &jalur, &badan, hasil);
+    ok = jalankan_dengan("POST", &jalur, &badan, alat_ringkas_berhasil, hasil);
 selesai:
     free(id);
     penyangga_bebaskan(&jalur);

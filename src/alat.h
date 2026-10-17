@@ -32,5 +32,11 @@ void alat_tambah_dibatasi(penyangga_t *hasil, const char *badan, size_t panjang)
    tak dikenali (hasil tidak diubah). */
 int alat_ringkas_spreadsheet(const char *badan, size_t panjang, penyangga_t *hasil);
 int alat_ringkas_nilai(const char *badan, size_t panjang, penyangga_t *hasil);
+int alat_ringkas_berhasil(const char *badan, size_t panjang, penyangga_t *hasil);
+int alat_ringkas_tulis(const char *badan, size_t panjang, penyangga_t *hasil);
+int alat_ringkas_tambah_baris(const char *badan, size_t panjang, penyangga_t *hasil);
+int alat_ringkas_tambah_lembar(const char *badan, size_t panjang, penyangga_t *hasil);
+int alat_ringkas_ganti_nama(const char *badan, size_t panjang, penyangga_t *hasil);
+int alat_ringkas_gaya(const char *badan, size_t panjang, penyangga_t *hasil);
 
 #endif

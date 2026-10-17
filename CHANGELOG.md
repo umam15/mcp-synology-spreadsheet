@@ -14,6 +14,7 @@ Mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [Seman
 - Hemat token: deskripsi alat dipersingkat; `ambil_spreadsheet` dan `baca_nilai` mengirim keluaran ringkas; hasil alat dibatasi 24000 byte; tes ukuran daftar alat dan keluaran.
 - CI GitHub Actions hemat menit: build dan tes Windows pada PR dan manual (artifact); Release otomatis pada tag `vX.Y.Z`, pre-release pada `vX.Y.Z-rc.N`.
 - Hasil pencabutan token dicatat di log (tanpa token).
+- Hemat token tahap 2: keluaran ringkas untuk `tulis_nilai`, `tambah_baris`, `tambah_lembar`, `ganti_nama_lembar`, `baca_gaya` (±80% lebih kecil), dan `Berhasil` untuk `tulis_gaya`, `ubah_massal`, `hapus_lembar`, `hapus_spreadsheet`.
 - Dokumen: README, GLOSARIUM, TODO, CONTRIBUTING, panduan teknis.
 
 ### Diperbaiki
