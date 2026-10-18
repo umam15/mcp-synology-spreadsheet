@@ -26,7 +26,7 @@ Rencana kerja. Perubahan yang dirilis dicatat di `CHANGELOG.md`.
 - [x] Audit hemat token tahap 2: keluaran `tulis_nilai`, `tambah_baris`, `tambah_lembar`, `ganti_nama_lembar`, `baca_gaya` diringkas (`baca_gaya` ±3200 → ±560 karakter), alat gaya/hapus/ubah massal membalas `Berhasil`; tes isi dan penolakan ditambah
 - [ ] Pesan galat jelas untuk spreadsheet terhapus (kini HTTP 500 "Unexpected error" dari API)
 - [ ] Uji masuk ulang otomatis saat token ditolak di tengah sesi
-- [ ] Rilis v0.1.0
+- [x] Rilis v0.1.0
 
 ## Berikutnya
 

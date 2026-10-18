@@ -4,6 +4,8 @@ Mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [Seman
 
 ## [Belum dirilis]
 
+## [0.1.0] - 2026-10-18
+
 ### Ditambahkan
 
 - Server MCP stdio berbahasa C dengan 14 alat untuk Synology Spreadsheet.
