@@ -588,11 +588,11 @@ static int jalankan_dengan(const char *metode, const penyangga_t *jalur, const p
         }
         ok = 1;
     } else {
-        char ringkas[320];
+        char uraian[320];
 
-        api_ringkas_galat(respons.badan.data, respons.badan.panjang, ringkas, sizeof ringkas);
-        penyangga_tambah_format(hasil, "Galat API (HTTP %d): %s%s", respons.kode_status, ringkas,
-                                api_petunjuk_galat(respons.kode_status, ringkas));
+        api_ringkas_galat(respons.badan.data, respons.badan.panjang, uraian, sizeof uraian);
+        penyangga_tambah_format(hasil, "Galat API (HTTP %d): %s%s", respons.kode_status, uraian,
+                                api_petunjuk_galat(respons.kode_status, uraian));
     }
     penyangga_bebaskan(&respons.badan);
     return ok;
