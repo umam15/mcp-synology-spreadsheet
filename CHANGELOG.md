@@ -6,6 +6,7 @@ Mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [Seman
 
 ### Diubah
 
+- Pesan galat HTTP kini satu baris tanpa HTML (mis. `502 Bad Gateway` alih-alih halaman penuh), dengan petunjuk untuk 502/503/504 (layanan di balik proxy) dan 500 "Unexpected error" (ID spreadsheet tidak ada atau terhapus); hemat token.
 - Dokumentasi: lokasi bawaan exe `%LOCALAPPDATA%\Programs\mcp-synology-spreadsheet\`; konfigurasi tetap di `.config`.
 
 ## [0.1.0] - 2026-10-18

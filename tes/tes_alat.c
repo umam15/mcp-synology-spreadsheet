@@ -4,6 +4,7 @@
 
 #include "alat.h"
 #include "json.h"
+#include "klien_api.h"
 #include "penyangga.h"
 #include "tes.h"
 
@@ -317,11 +318,73 @@ static void periksa_ringkas_tahap2(void)
     penyangga_bebaskan(&hasil);
 }
 
+/* Hemat token: pesan galat HTTP satu baris tanpa HTML. */
+static void periksa_galat_ringkas(void)
+{
+    char k[320];
+    char kecil[6];
+    static const char html502[] =
+        "<html>\r\n<head><title>502 Bad Gateway</title></head>\r\n<body>\r\n<center><h1>502 Bad "
+        "Gateway</h1></center>\r\n<hr><center>openresty</center>\r\n</body>\r\n</html>\r\n";
+
+    api_ringkas_galat(html502, sizeof html502 - 1, k, sizeof k);
+    PERIKSA_TEKS(k, "502 Bad Gateway");
+
+    api_ringkas_galat("{\"message\":\"Unexpected error\",\"status\":\"INTERNAL_ERROR\",\"code\":500}",
+                      strlen("{\"message\":\"Unexpected error\",\"status\":\"INTERNAL_ERROR\","
+                             "\"code\":500}"),
+                      k, sizeof k);
+    PERIKSA_TEKS(k, "Unexpected error");
+
+    api_ringkas_galat("{\"statusCode\":500,\"error\":\"Internal Server Error\"}",
+                      strlen("{\"statusCode\":500,\"error\":\"Internal Server Error\"}"), k,
+                      sizeof k);
+    PERIKSA_TEKS(k, "Internal Server Error");
+
+    api_ringkas_galat("  baris satu\r\n\tbaris   dua  ", strlen("  baris satu\r\n\tbaris   dua  "), k,
+                      sizeof k);
+    PERIKSA_TEKS(k, "baris satu baris dua");
+
+    api_ringkas_galat("<html><body><h1>Oops</h1> teks</body></html>",
+                      strlen("<html><body><h1>Oops</h1> teks</body></html>"), k, sizeof k);
+    PERIKSA_TEKS(k, "Oops teks");
+
+    api_ringkas_galat("502", 3, k, sizeof k); /* JSON bukan objek: pakai teks polos */
+    PERIKSA_TEKS(k, "502");
+
+    api_ringkas_galat("", 0, k, sizeof k);
+    PERIKSA_TEKS(k, "(tanpa isi)");
+    api_ringkas_galat("   \r\n ", 6, k, sizeof k);
+    PERIKSA_TEKS(k, "(tanpa isi)");
+
+    /* panjang dibatasi */
+    {
+        char panjang_x[1001];
+
+        memset(panjang_x, 'x', 1000);
+        panjang_x[1000] = '\0';
+        api_ringkas_galat(panjang_x, 1000, k, sizeof k);
+        PERIKSA(strlen(k) == sizeof k - 1);
+    }
+
+    /* tidak membelah karakter UTF-8 (setiap karakter 2 byte; ruang 5 byte) */
+    api_ringkas_galat("\xC3\xA9\xC3\xA9\xC3\xA9\xC3\xA9", 8, kecil, sizeof kecil);
+    PERIKSA_TEKS(kecil, "\xC3\xA9\xC3\xA9");
+
+    /* petunjuk */
+    PERIKSA_MENGANDUNG(api_petunjuk_galat(502, "502 Bad Gateway"), "periksa layanan di NAS");
+    PERIKSA_MENGANDUNG(api_petunjuk_galat(504, ""), "periksa layanan di NAS");
+    PERIKSA_MENGANDUNG(api_petunjuk_galat(500, "Unexpected error"), "sudah dihapus");
+    PERIKSA_TEKS(api_petunjuk_galat(500, "kesalahan lain"), "");
+    PERIKSA_TEKS(api_petunjuk_galat(404, "Unexpected error"), "");
+}
+
 void tes_periksa_alat(void)
 {
     penyangga_t keluar;
     char id_panjang[80];
 
+    periksa_galat_ringkas();
     periksa_ringkas_tahap2();
     periksa_hemat_token();
     periksa_daftar();

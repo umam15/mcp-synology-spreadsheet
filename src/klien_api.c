@@ -28,8 +28,10 @@ static void lepas_sesi(void)
         } else if (respons.kode_status >= 200 && respons.kode_status < 300) {
             catat_info("Token dicabut (HTTP %d)", respons.kode_status);
         } else {
-            catat_info("Token gagal dicabut (HTTP %d): %.200s", respons.kode_status,
-                       penyangga_isi(&respons.badan));
+            char ringkas[320];
+
+            api_ringkas_galat(respons.badan.data, respons.badan.panjang, ringkas, sizeof ringkas);
+            catat_info("Token gagal dicabut (HTTP %d): %s", respons.kode_status, ringkas);
         }
         penyangga_bebaskan(&respons.badan);
     }
@@ -68,6 +70,148 @@ int api_pastikan_konfigurasi(char *galat, size_t ukuran_galat)
 const konfigurasi_t *api_konfigurasi(void)
 {
     return status_konfigurasi == 1 ? &konfigurasi_global : NULL;
+}
+
+/* ---------- pesan galat ringkas (hemat token) ---------- */
+
+/* Menyalin sumber ke keluar sebagai satu baris: spasi dan karakter kontrol berurutan dilipat,
+   tag HTML dibuang bila buang_tag, dipotong pada ukuran-1 byte di tepi karakter UTF-8. */
+static void bersihkan(const char *sumber, size_t panjang, int buang_tag, char *keluar,
+                      size_t ukuran)
+{
+    size_t n = 0;
+    size_t i;
+    int dalam_tag = 0;
+    int spasi = 1; /* 1 = jangan menulis spasi (awal atau setelah spasi) */
+
+    if (ukuran == 0) {
+        return;
+    }
+    for (i = 0; i < panjang && n + 1 < ukuran; i++) {
+        unsigned char c = (unsigned char)sumber[i];
+
+        if (dalam_tag) {
+            if (c == '>') {
+                dalam_tag = 0;
+            }
+            continue;
+        }
+        if (buang_tag && c == '<') {
+            dalam_tag = 1;
+            c = ' ';
+        }
+        if (c <= ' ') {
+            if (!spasi) {
+                keluar[n++] = ' ';
+                spasi = 1;
+            }
+            continue;
+        }
+        keluar[n++] = (char)c;
+        spasi = 0;
+    }
+    if (i < panjang && ((unsigned char)sumber[i] & 0xC0) == 0x80) {
+        while (n > 0 && ((unsigned char)keluar[n - 1] & 0xC0) == 0x80) {
+            n--; /* buang byte lanjutan yang sudah tersalin */
+        }
+        if (n > 0) {
+            n--; /* buang byte awal karakter yang terpotong */
+        }
+    }
+    if (n > 0 && keluar[n - 1] == ' ') {
+        n--;
+    }
+    keluar[n] = '\0';
+}
+
+static const char *cari_tanpa_huruf_besar(const char *teks, size_t panjang, const char *jarum)
+{
+    size_t m = strlen(jarum);
+    size_t i;
+    size_t j;
+
+    for (i = 0; i + m <= panjang; i++) {
+        for (j = 0; j < m; j++) {
+            char a = teks[i + j];
+
+            if (a >= 'A' && a <= 'Z') {
+                a = (char)(a + ('a' - 'A'));
+            }
+            if (a != jarum[j]) {
+                break;
+            }
+        }
+        if (j == m) {
+            return teks + i;
+        }
+    }
+    return NULL;
+}
+
+void api_ringkas_galat(const char *badan, size_t panjang, char *keluar, size_t ukuran)
+{
+    dokumen_json_t dok;
+
+    if (ukuran == 0) {
+        return;
+    }
+    keluar[0] = '\0';
+    if (badan == NULL || panjang == 0) {
+        snprintf(keluar, ukuran, "(tanpa isi)");
+        return;
+    }
+    if (json_urai(&dok, badan, panjang)) {
+        char *teks = NULL;
+
+        if (json_akar(&dok)->jenis == JSON_OBJEK) {
+            const simpul_json_t *n = json_cari(&dok, json_akar(&dok), "message");
+
+            if (n == NULL) {
+                n = json_cari(&dok, json_akar(&dok), "error");
+            }
+            if (n != NULL) {
+                teks = json_teks_salin(&dok, n);
+            }
+        }
+        json_bebaskan(&dok);
+        if (teks != NULL) {
+            bersihkan(teks, strlen(teks), 0, keluar, ukuran);
+            free(teks);
+        }
+    }
+    if (keluar[0] == '\0') {
+        const char *awal = cari_tanpa_huruf_besar(badan, panjang, "<title>");
+        const char *akhir = NULL;
+
+        if (awal != NULL) {
+            awal += strlen("<title>");
+            akhir = cari_tanpa_huruf_besar(awal, panjang - (size_t)(awal - badan), "</title>");
+        }
+        if (awal != NULL && akhir != NULL) {
+            bersihkan(awal, (size_t)(akhir - awal), 0, keluar, ukuran);
+        } else {
+            size_t k = 0;
+
+            while (k < panjang && (unsigned char)badan[k] <= ' ') {
+                k++;
+            }
+            bersihkan(badan, panjang, k < panjang && badan[k] == '<', keluar, ukuran);
+        }
+    }
+    if (keluar[0] == '\0') {
+        snprintf(keluar, ukuran, "(tanpa isi)");
+    }
+}
+
+const char *api_petunjuk_galat(int kode_status, const char *ringkas)
+{
+    if (kode_status == 502 || kode_status == 503 || kode_status == 504) {
+        return " - layanan Spreadsheet API di balik proxy tidak menjawab; periksa layanan di NAS";
+    }
+    if (kode_status == 500 && ringkas != NULL && strstr(ringkas, "Unexpected error") != NULL) {
+        return " - kemungkinan ID spreadsheet tidak ada atau sudah dihapus";
+    }
+    return "";
 }
 
 static const char *petunjuk_masuk(int kode_status)
@@ -116,8 +260,12 @@ int api_masuk(char *galat, size_t ukuran_galat)
         goto selesai;
     }
     if (respons.kode_status != 200) {
-        snprintf(galat, ukuran_galat, "Masuk gagal (HTTP %d)%s: %.200s", respons.kode_status,
-                 petunjuk_masuk(respons.kode_status), penyangga_isi(&respons.badan));
+        char ringkas[320];
+
+        api_ringkas_galat(respons.badan.data, respons.badan.panjang, ringkas, sizeof ringkas);
+        snprintf(galat, ukuran_galat, "Masuk gagal (HTTP %d): %s%s%s", respons.kode_status, ringkas,
+                 petunjuk_masuk(respons.kode_status),
+                 api_petunjuk_galat(respons.kode_status, ringkas));
         goto selesai;
     }
     if (json_urai(&dok, respons.badan.data, respons.badan.panjang)) {

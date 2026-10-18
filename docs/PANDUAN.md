@@ -72,6 +72,8 @@ Keluaran ringkas (hemat token):
 
 Hasil alat dipotong pada 24000 byte dengan catatan "terpotong"; baca rentang atau lembar yang lebih kecil.
 
+Galat HTTP dilaporkan satu baris (maks 320 karakter), mis. `Galat API (HTTP 502): 502 Bad Gateway - layanan Spreadsheet API di balik proxy tidak menjawab; periksa layanan di NAS`. Isi diambil dari `message` atau `error` JSON, atau judul atau teks HTML tanpa tag.
+
 ## Protokol
 
 Versi MCP yang didukung: 2025-11-25, 2025-06-18, 2025-03-26, 2024-11-05. Notifikasi tidak dibalas; log hanya ke stderr tanpa kredensial; batas pesan 16 MiB.

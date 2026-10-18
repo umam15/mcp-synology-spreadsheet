@@ -24,6 +24,14 @@ const konfigurasi_t *api_konfigurasi(void);
    bila konfigurasi valid. */
 int api_pastikan_konfigurasi(char *galat, size_t ukuran_galat);
 
+/* Hemat token: meringkas badan galat HTTP menjadi satu baris pendek di keluar (JSON "message"
+   atau "error", judul atau teks HTML tanpa tag, atau teks polos; dipotong pada ukuran-1 byte di
+   tepi UTF-8). Badan kosong menghasilkan "(tanpa isi)". */
+void api_ringkas_galat(const char *badan, size_t panjang, char *keluar, size_t ukuran);
+
+/* Petunjuk singkat (diawali " - ") untuk kode galat tertentu, atau "" bila tidak ada. */
+const char *api_petunjuk_galat(int kode_status, const char *ringkas);
+
 /* Mencabut token (upaya terbaik) dan membersihkan kredensial dari memori. */
 void api_cabut(void);
 
