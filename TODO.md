@@ -25,6 +25,8 @@ Rencana kerja. Perubahan yang dirilis dicatat di `CHANGELOG.md`.
 - [x] Uji alat tulis, struktur, dan hapus pada spreadsheet uji baru (lewat Claude Desktop, exe rc.1): semua berhasil; alat merusak menolak tanpa `konfirmasi`
 - [x] Audit hemat token tahap 2: keluaran `tulis_nilai`, `tambah_baris`, `tambah_lembar`, `ganti_nama_lembar`, `baca_gaya` diringkas (`baca_gaya` ±3200 → ±560 karakter), alat gaya/hapus/ubah massal membalas `Berhasil`; tes isi dan penolakan ditambah
 - [ ] Pesan galat jelas untuk spreadsheet terhapus (kini HTTP 500 "Unexpected error" dari API)
+- [ ] Ringkas pesan galat HTTP berisi halaman HTML (mis. 502 Bad Gateway dari openresty): buang tag, satu kalimat (hemat token)
+- [ ] Uji ulang exe v0.1.0 ke NAS setelah layanan Spreadsheet API pulih dari 502 (v0.1.0 memakai kode yang sama dengan rc.2, yang lulus uji NAS)
 - [ ] Uji masuk ulang otomatis saat token ditolak di tengah sesi
 - [x] Rilis v0.1.0
 
