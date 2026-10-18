@@ -33,13 +33,15 @@ Berkas `%USERPROFILE%\.config\mcp-synology-spreadsheet\config.json` (non-Windows
 
 ## Pendaftaran di klien MCP
 
+Lokasi bawaan exe: `%LOCALAPPDATA%\Programs\mcp-synology-spreadsheet\mcp-synology-spreadsheet.exe` (khusus pengguna, tanpa hak administrator, terpisah dari konfigurasi; jangan di folder yang disinkronkan karena exe terkunci saat server berjalan). Konfigurasi tetap di `.config` (bagian di atas), sehingga exe bisa diganti tanpa menyentuh kredensial. Memperbarui: tutup klien, timpa exe, buka klien.
+
 Daftarkan exe langsung tanpa argumen, mis. pada `claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "synology-spreadsheet": {
-      "command": "C:\\Users\\<pengguna>\\.config\\mcp-synology-spreadsheet\\mcp-synology-spreadsheet.exe"
+      "command": "C:\\Users\\<pengguna>\\AppData\\Local\\Programs\\mcp-synology-spreadsheet\\mcp-synology-spreadsheet.exe"
     }
   }
 }

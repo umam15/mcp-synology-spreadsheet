@@ -19,7 +19,7 @@ Nomor identitas spreadsheet tidak disimpan; sebutkan saja saat meminta tugas.
 
 ## Cara memakai
 
-1. Unduh programnya dari halaman Release.
+1. Unduh programnya dari halaman Release dan simpan di `%LOCALAPPDATA%\Programs\mcp-synology-spreadsheet\` (tidak perlu hak administrator).
 2. Isi berkas `config.json` di folder `.config\mcp-synology-spreadsheet` pada folder pengguna Anda.
 3. Daftarkan program ke aplikasi AI Anda.
 4. Minta asisten bekerja pada spreadsheet Anda.

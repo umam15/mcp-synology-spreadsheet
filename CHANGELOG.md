@@ -4,6 +4,10 @@ Mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [Seman
 
 ## [Belum dirilis]
 
+### Diubah
+
+- Dokumentasi: lokasi bawaan exe `%LOCALAPPDATA%\Programs\mcp-synology-spreadsheet\`; konfigurasi tetap di `.config`.
+
 ## [0.1.0] - 2026-10-18
 
 ### Ditambahkan
