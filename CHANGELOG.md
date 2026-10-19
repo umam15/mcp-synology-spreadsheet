@@ -4,9 +4,12 @@ Mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan [Seman
 
 ## [Belum dirilis]
 
+## [0.1.1] - 2026-10-19
+
 ### Ditambahkan
 
 - `tes/uji_sesi.py`: uji sesi dengan server API tiruan lokal (masuk ulang otomatis saat HTTP 401, pencabutan token saat `config.json` berubah dan saat server berhenti, tanpa rahasia di keluaran); dijalankan di CI.
+- Build gcc memakai `-Wshadow` (menangkap variabel yang menutupi parameter, yang dilaporkan MSVC sebagai C4457).
 
 ### Diubah
 
