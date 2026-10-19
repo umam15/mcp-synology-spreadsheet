@@ -138,7 +138,9 @@ def main():
     threading.Thread(
         target=lambda: [stderr_baris.append(b) for b in proses.stderr], daemon=True
     ).start()
-    threading.Timer(60, proses.kill).start()  # pengaman bila macet
+    pengaman = threading.Timer(60, proses.kill)  # pengaman bila macet
+    pengaman.daemon = True
+    pengaman.start()
 
     def kirim(objek):
         proses.stdin.write((json.dumps(objek) + "\n").encode())
@@ -223,6 +225,7 @@ def main():
         if stderr_baris:
             print("stderr exe:", b"".join(stderr_baris)[-500:].decode(errors="replace"))
     finally:
+        pengaman.cancel()
         proses.kill()
         server.shutdown()
         shutil.rmtree(rumah, ignore_errors=True)
