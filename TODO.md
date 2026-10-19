@@ -26,8 +26,8 @@ Rencana kerja. Perubahan yang dirilis dicatat di `CHANGELOG.md`.
 - [x] Audit hemat token tahap 2: keluaran `tulis_nilai`, `tambah_baris`, `tambah_lembar`, `ganti_nama_lembar`, `baca_gaya` diringkas (`baca_gaya` ±3200 → ±560 karakter), alat gaya/hapus/ubah massal membalas `Berhasil`; tes isi dan penolakan ditambah
 - [x] Pesan galat jelas untuk spreadsheet terhapus: "Galat API (HTTP 500): Unexpected error - kemungkinan ID spreadsheet tidak ada atau sudah dihapus"
 - [x] Pesan galat HTTP diringkas menjadi satu baris tanpa HTML (JSON `message`/`error`, judul HTML, teks polos; maks 320 karakter); petunjuk untuk 502/503/504
-- [ ] Uji ulang exe v0.1.0 ke NAS setelah layanan Spreadsheet API pulih dari 502 (v0.1.0 memakai kode yang sama dengan rc.2, yang lulus uji NAS)
-- [ ] Uji masuk ulang otomatis saat token ditolak di tengah sesi
+- [x] Uji ulang exe v0.1.0 ke NAS setelah layanan Spreadsheet API pulih dari 502: lulus (login, `ambil_spreadsheet`, `baca_nilai`)
+- [x] Uji masuk ulang otomatis saat token ditolak (HTTP 401) dan pencabutan token saat `config.json` berubah dan saat server berhenti: `tes/uji_sesi.py` (server API tiruan, 12 pemeriksaan lulus; ikut CI)
 - [x] Rilis v0.1.0
 
 ## Berikutnya

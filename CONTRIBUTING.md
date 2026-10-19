@@ -15,7 +15,7 @@ Kode, komentar, pesan, dan dokumen berbahasa Indonesia. Istilah baru ditambahkan
 
 - C11, kompilasi tanpa peringatan (`-Wall -Wextra -Wpedantic`; CI memakai `PERINGATAN_SEBAGAI_GALAT=ON`).
 - Ringan dan tangguh; utamakan optimasi daripada fitur baru; offline first.
-- Setiap perubahan perilaku disertai tes di `tes/`; jalankan `ctest` sebelum PR.
+- Setiap perubahan perilaku disertai tes di `tes/`; jalankan `ctest` sebelum PR. Perubahan pada sesi, token, atau klien HTTP: jalankan juga `python tes/uji_sesi.py bangun/mcp-synology-spreadsheet.exe` (server API tiruan lokal; tanpa NAS dan tanpa kredensial).
 
 ## Hemat token (syarat utama)
 

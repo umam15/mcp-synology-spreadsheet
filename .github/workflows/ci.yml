@@ -45,6 +45,9 @@ jobs:
       - name: Tes
         run: ctest --test-dir bangun -C Release --output-on-failure
 
+      - name: Uji sesi (server API tiruan)
+        run: python tes/uji_sesi.py bangun/Release/mcp-synology-spreadsheet.exe
+
       - name: Kemas
         shell: pwsh
         run: |
